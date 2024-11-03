@@ -25,6 +25,11 @@ public class MecanumTeleOp extends LinearOpMode {
         frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         backRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
+        DcMotor LSMotorR = hardwareMap.dcMotor.get("LSMotorR");
+        DcMotor LSMotorL = hardwareMap.dcMotor.get("LSMotorL");
+        DcMotor SlideMotorR = hardwareMap.dcMotor.get("RightSlideMotor");
+        DcMotor SlideMotorL = hardwareMap.dcMotor.get("LeftSlideMotor");
+
         waitForStart();
 
         if (isStopRequested()) return;
@@ -87,6 +92,33 @@ public class MecanumTeleOp extends LinearOpMode {
             telemetry.addData("frontLeftPower_mod: ", backLeftPower_mod);
             telemetry.addData("frontLeftPower_mod: ", frontRightPower_mod);
             telemetry.addData("frontLeftPower_mod: ", backRightPower_mod);
+
+
+            if(gamepad1.right_bumper){
+                LSMotorR.setPower(0.2);
+                LSMotorL.setPower(0.2);
+            }
+            else if (gamepad1.left_bumper){
+                LSMotorR.setPower(-0.2);
+                LSMotorL.setPower(-0.2);
+            }
+            else {
+                LSMotorR.setPower(0);
+                LSMotorL.setPower(0);
+            }
+
+            if(gamepad2.left_stick_y<0){
+                SlideMotorR.setPower(-gamepad2.left_stick_y);
+                SlideMotorL.setPower(-gamepad2.left_stick_y);
+            }
+            else if (gamepad2.left_stick_y>0){
+                SlideMotorR.setPower(-gamepad2.left_stick_y);
+                SlideMotorL.setPower(-gamepad2.left_stick_y);
+            }
+            else {
+                SlideMotorR.setPower(0);
+                SlideMotorL.setPower(0);
+            }
 
             telemetry.update();
         }
