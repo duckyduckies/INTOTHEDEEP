@@ -67,7 +67,7 @@ public class MecanumTeleOp extends LinearOpMode {
         intakeServoL.setPower(0);
 
         final float[] hsvValues = new float[3];
-        NormalizedColorSensor  colorSensor = hardwareMap.get(NormalizedColorSensor.class, "ColorSensor");
+        NormalizedColorSensor colorSensor = hardwareMap.get(NormalizedColorSensor.class, "ColorSensor");
 
         DcMotor LSMotorR = hardwareMap.dcMotor.get("LSMotorR");
         DcMotor LSMotorL = hardwareMap.dcMotor.get("LSMotorL");
@@ -194,25 +194,23 @@ public class MecanumTeleOp extends LinearOpMode {
             if (gamepad2.right_trigger > 0.3) {
                 intakeServoR.setPower(1.0);
                 intakeServoL.setPower(-1.0);
-            }
-            else if (gamepad2.left_trigger > 0.3) {
+            } else if (gamepad2.left_trigger > 0.3) {
                 intakeServoR.setPower(-1.0);
                 intakeServoL.setPower(1.0);
-            }
-            else {
+            } else {
                 intakeServoR.setPower(0);
                 intakeServoL.setPower(0);
             }
 
             if (((DistanceSensor) colorSensor).getDistance(DistanceUnit.CM) < 2) {
-                telemetry.addData("sample detected",0);
+                telemetry.addData("sample detected", 0);
                 gamepad1.runRumbleEffect(rumbleEffect);
             }
             if (colorSensor instanceof DistanceSensor) {
                 telemetry.addData("Distance (cm)", "%.3f", ((DistanceSensor) colorSensor).getDistance(DistanceUnit.CM));
             }
 
-            if (gamepad1.y){
+            if (gamepad1.y) {
                 slideMotorR.setTargetPosition(500);
                 slideMotorL.setTargetPosition(500);
                 slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -238,29 +236,24 @@ public class MecanumTeleOp extends LinearOpMode {
             telemetry.addData("Alpha", "%.3f", colors.alpha);
 
 
-
-            if(gamepad1.right_bumper){
+            if (gamepad1.right_bumper) {
                 LSMotorR.setPower(0.2);
                 LSMotorL.setPower(0.2);
-            }
-            else if (gamepad1.left_bumper){
+            } else if (gamepad1.left_bumper) {
                 LSMotorR.setPower(-0.2);
                 LSMotorL.setPower(-0.2);
-            }
-            else {
+            } else {
                 LSMotorR.setPower(0);
                 LSMotorL.setPower(0);
             }
 
-            if(gamepad2.left_stick_y<0){
+            if (gamepad2.left_stick_y < 0) {
                 slideMotorR.setPower(-gamepad2.left_stick_y);
                 slideMotorL.setPower(-gamepad2.left_stick_y);
-            }
-            else if (gamepad2.left_stick_y>0){
+            } else if (gamepad2.left_stick_y > 0) {
                 slideMotorR.setPower(-gamepad2.left_stick_y);
                 slideMotorL.setPower(-gamepad2.left_stick_y);
-            }
-            else {
+            } else {
                 slideMotorR.setPower(0);
                 slideMotorL.setPower(0);
             }
@@ -268,13 +261,14 @@ public class MecanumTeleOp extends LinearOpMode {
             telemetry.update();
         }
     }
-        private double DcMotorPowerModifier(double Power) {
-            return Math.pow(Math.tanh(Power)/Math.tanh(1),3);
-        }
 
-        private double DcMotorPowerModifierAdv(double Power, int eqVer) {
-            if (eqVer == 1) {
-            return Math.pow(Math.tanh(Power)/Math.tanh(1),3);
+    private double DcMotorPowerModifier(double Power) {
+        return Math.pow(Math.tanh(Power) / Math.tanh(1), 3);
+    }
+
+    private double DcMotorPowerModifierAdv(double Power, int eqVer) {
+        if (eqVer == 1) {
+            return Math.pow(Math.tanh(Power) / Math.tanh(1), 3);
         } else if (eqVer == 2) {
             return Math.pow(Power, 3);
         } else if (eqVer == 3) {
