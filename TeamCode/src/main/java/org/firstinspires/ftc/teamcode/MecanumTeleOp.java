@@ -69,6 +69,8 @@ public class MecanumTeleOp extends LinearOpMode {
         final float[] hsvValues = new float[3];
         NormalizedColorSensor  colorSensor = hardwareMap.get(NormalizedColorSensor.class, "ColorSensor");
 
+        DcMotor LSMotorR = hardwareMap.dcMotor.get("LSMotorR");
+        DcMotor LSMotorL = hardwareMap.dcMotor.get("LSMotorL");
 
         waitForStart();
 
@@ -235,6 +237,33 @@ public class MecanumTeleOp extends LinearOpMode {
                     .addData("Value", "%.3f", hsvValues[2]);
             telemetry.addData("Alpha", "%.3f", colors.alpha);
 
+
+
+            if(gamepad1.right_bumper){
+                LSMotorR.setPower(0.2);
+                LSMotorL.setPower(0.2);
+            }
+            else if (gamepad1.left_bumper){
+                LSMotorR.setPower(-0.2);
+                LSMotorL.setPower(-0.2);
+            }
+            else {
+                LSMotorR.setPower(0);
+                LSMotorL.setPower(0);
+            }
+
+            if(gamepad2.left_stick_y<0){
+                slideMotorR.setPower(-gamepad2.left_stick_y);
+                slideMotorL.setPower(-gamepad2.left_stick_y);
+            }
+            else if (gamepad2.left_stick_y>0){
+                slideMotorR.setPower(-gamepad2.left_stick_y);
+                slideMotorL.setPower(-gamepad2.left_stick_y);
+            }
+            else {
+                slideMotorR.setPower(0);
+                slideMotorL.setPower(0);
+            }
 
             telemetry.update();
         }
