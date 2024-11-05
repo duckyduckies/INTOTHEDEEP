@@ -66,6 +66,12 @@ public class MecanumTeleOp extends LinearOpMode {
         intakeServoR.setPower(0);
         intakeServoL.setPower(0);
 
+        Servo extendServoR = hardwareMap.servo.get("ExtendServoR");  
+        Servo extendServoL = hardwareMap.servo.get("ExtendServoL");
+        extendServoR.setPosition(0);
+        extendServoL.setPosition(0);
+        double slideExtend = 0;
+
         final float[] hsvValues = new float[3];
         NormalizedColorSensor colorSensor = hardwareMap.get(NormalizedColorSensor.class, "ColorSensor");
 
@@ -175,8 +181,8 @@ public class MecanumTeleOp extends LinearOpMode {
             if (gamepad2.left_stick_y > 0.3) {
                 if (armPosition <= 1) {
                     armPosition += 0.1;
-                    armServoR.setPosition(wristPosition);
-                    armServoL.setPosition(wristPosition);
+                    armServoR.setPosition(armPosition);
+                    armServoL.setPosition(armPosition);
                 }
             }
             if (gamepad2.left_stick_y > -0.3) {
@@ -257,7 +263,9 @@ public class MecanumTeleOp extends LinearOpMode {
                 slideMotorR.setPower(0);
                 slideMotorL.setPower(0);
             }
+            if (gamepad2.right_bumper) {
 
+            }
             telemetry.update();
         }
     }
