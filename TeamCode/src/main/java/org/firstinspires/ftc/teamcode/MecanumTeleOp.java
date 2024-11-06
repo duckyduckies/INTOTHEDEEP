@@ -55,11 +55,12 @@ public class MecanumTeleOp extends LinearOpMode {
         Servo wristServo = hardwareMap.servo.get("WristServo");
         wristServo.setPosition(wristPosition); // up
 
-        double armPosition = 1; //up
+        double armPositionR = 0.5; //midpoint
+        double armPositionL = 0.5; //midpoint
         Servo armServoR = hardwareMap.servo.get("ArmServoR");
         Servo armServoL = hardwareMap.servo.get("ArmServoL");
-        armServoR.setPosition(armPosition);
-        armServoL.setPosition(armPosition);
+        armServoR.setPosition(armPositionR);
+        armServoL.setPosition(armPositionL);
 
         CRServo intakeServoR = hardwareMap.crservo.get("IntakeServoR");
         CRServo intakeServoL = hardwareMap.crservo.get("IntakeServoL");
@@ -70,7 +71,8 @@ public class MecanumTeleOp extends LinearOpMode {
         Servo extendServoL = hardwareMap.servo.get("ExtendServoL");
         extendServoR.setPosition(0);
         extendServoL.setPosition(0);
-        double slideExtend = 0;
+        double slideExtendR = 0;
+        double slideExtendL = 0;
 
         final float[] hsvValues = new float[3];
         NormalizedColorSensor colorSensor = hardwareMap.get(NormalizedColorSensor.class, "ColorSensor");
@@ -83,7 +85,6 @@ public class MecanumTeleOp extends LinearOpMode {
         if (isStopRequested()) return;
 
         while (opModeIsActive()) {
-
             // Click "back" button to toggle the debug view
 
             if (gamepad1.back || gamepad2.back) {
@@ -179,22 +180,26 @@ public class MecanumTeleOp extends LinearOpMode {
             }
 
             if (gamepad2.left_stick_y > 0.3) {
-                if (armPosition <= 1) {
-                    armPosition += 0.1;
-                    armServoR.setPosition(armPosition);
-                    armServoL.setPosition(armPosition);
+                if (armPositionR <= 1 && armPositionL >= 0) {
+                    armPositionR += 0.1;
+                    armPositionL -= 0.1;
+                    armServoR.setPosition(armPositionR);
+                    armServoL.setPosition(armPositionL);
                 }
             }
-            if (gamepad2.left_stick_y > -0.3) {
-                if (armPosition >= 0) {
-                    armPosition -= 0.1;
-                    armServoR.setPosition(armPosition);
-                    armServoL.setPosition(armPosition);
+            if (gamepad2.left_stick_y < -0.3) {
+                if (armPositionR >= 0 && armPositionL <= 1) {
+                    armPositionR -= 0.1;
+                    armPositionL += 0.1;
+                    armServoR.setPosition(armPositionR);
+                    armServoL.setPosition(armPositionL);
                 }
             }
 
             if (debug_mode) {
-                telemetry.addData("armPosition:", armPosition);
+                telemetry.addData("armPositionR:", armPositionR);
+                telemetry.addData("armPositionL:", armPositionL);
+
             }
 
             if (gamepad2.right_trigger > 0.3) {
@@ -263,10 +268,27 @@ public class MecanumTeleOp extends LinearOpMode {
                 slideMotorR.setPower(0);
                 slideMotorL.setPower(0);
             }
-            if (gamepad2.right_bumper) {
-
+            /*
+            while (gamepad2.right_bumper) {
+                if (slideExtendR >= 0 && slideExtendL <= 1) {
+                    slideExtendR += 0.1;
+                    slideExtendL -= 0.1;
+                    extendServoR.setPosition(slideExtendR);
+                    extendServoL.setPosition(slideExtendL);
+                }
             }
+
+            while (gamepad2.left_bumper) {
+                if (slideExtendR <= 1 && slideExtendL >= 0) {
+                    slideExtendR -= 0.1;
+                    slideExtendL += 0.1;
+                    extendServoR.setPosition(slideExtendR);
+                    extendServoL.setPosition(slideExtendL);
+                }
+            }
+            */
             telemetry.update();
+
         }
     }
 
