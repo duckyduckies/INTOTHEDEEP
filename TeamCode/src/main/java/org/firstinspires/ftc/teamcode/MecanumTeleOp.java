@@ -23,6 +23,8 @@ public class MecanumTeleOp extends LinearOpMode {
         // If your robot moves backwards when commanded to go forwards,
         // reverse the left side instead.
         // See the note about this earlier on this page.
+        double LSPositionR = LSMotorR.getCurrentPosition();
+        double LSPositionL = LSMotorL.getCurrentPosition();
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         frontLeftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -103,7 +105,6 @@ public class MecanumTeleOp extends LinearOpMode {
                 LSMotorR.setPower(0);
                 LSMotorL.setPower(0);
             }
-
             if(gamepad2.left_stick_y<0){
                 SlideMotorR.setPower(-gamepad2.left_stick_y);
                 SlideMotorL.setPower(-gamepad2.left_stick_y);
