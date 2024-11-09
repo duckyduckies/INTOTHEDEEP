@@ -54,13 +54,19 @@ public class MecanumTeleOp extends LinearOpMode {
         double wristPosition = 1;
         Servo wristServo = hardwareMap.servo.get("WristServo");
         wristServo.setPosition(wristPosition); // up
-
-        double armPositionR = 0.1; //midpoint
-        double armPositionL = 0.9; //midpoint
+/*
+        double armPositionR = 0.6; //midpoint
+        double armPositionL = 0.4; //midpoint
         Servo armServoR = hardwareMap.servo.get("ArmServoR");
         Servo armServoL = hardwareMap.servo.get("ArmServoL");
         armServoR.setPosition(armPositionR);
         armServoL.setPosition(armPositionL);
+*/
+
+        CRServo armServoR = hardwareMap.crservo.get("ArmServoR");
+        CRServo armServoL = hardwareMap.crservo.get("ArmServoL");
+        armServoR.setPower(0);
+        armServoL.setPower(0);
 
         CRServo intakeServoR = hardwareMap.crservo.get("IntakeServoR");
         CRServo intakeServoL = hardwareMap.crservo.get("IntakeServoL");
@@ -143,14 +149,14 @@ public class MecanumTeleOp extends LinearOpMode {
             backRightMotor.setPower(backRightPower_mod);
 
             if (debug_mode) {
-                telemetry.addData("frontLeftPower_mod: ", frontLeftPower);
-                telemetry.addData("frontLeftPower_mod: ", backLeftPower);
-                telemetry.addData("frontLeftPower_mod: ", frontRightPower);
-                telemetry.addData("frontLeftPower_mod: ", backRightPower);
+                telemetry.addData("frontLeftPower: ", frontLeftPower);
+                telemetry.addData("backLeftPower: ", backLeftPower);
+                telemetry.addData("frontRightPower: ", frontRightPower);
+                telemetry.addData("backRightPower: ", backRightPower);
                 telemetry.addData("frontLeftPower_mod: ", frontLeftPower_mod);
-                telemetry.addData("frontLeftPower_mod: ", backLeftPower_mod);
-                telemetry.addData("frontLeftPower_mod: ", frontRightPower_mod);
-                telemetry.addData("frontLeftPower_mod: ", backRightPower_mod);
+                telemetry.addData("backLeftPower_mod: ", backLeftPower_mod);
+                telemetry.addData("frontRightPower_mod: ", frontRightPower_mod);
+                telemetry.addData("backRightPower_mod: ", backRightPower_mod);
             }
 
             // Wrist
@@ -162,13 +168,16 @@ public class MecanumTeleOp extends LinearOpMode {
                 wristServo.setPosition(0);
             }
             */
-            while (gamepad2.dpad_up) {
+
+            //***** change from while to if - not tested
+            if (gamepad2.dpad_up) {
                 if (wristPosition <= 1) {
                     wristPosition += 0.1;
                     wristServo.setPosition(wristPosition);
                 }
             }
-            while (gamepad2.dpad_down) {
+            //***** change from while to if - not tested
+            if (gamepad2.dpad_down) {
                 if (wristPosition >= 0) {
                     wristPosition -= 0.1;
                     wristServo.setPosition(wristPosition);
@@ -196,11 +205,11 @@ public class MecanumTeleOp extends LinearOpMode {
                     armServoL.setPosition(armPositionL);
                 }
             }
-            */
+
 
             if (gamepad1.x) {
-                armPositionR = 1;
-                armPositionL = 0;
+                armPositionR = 0.5;
+                armPositionL = 0.5;
                 armServoR.setPosition(armPositionR);
                 armServoL.setPosition(armPositionL);
             }
@@ -210,6 +219,11 @@ public class MecanumTeleOp extends LinearOpMode {
                 telemetry.addData("armPositionL:", armPositionL);
 
             }
+             */
+
+            //***** change from servos to CRServos
+            armServoR.setPower(-gamepad2.right_stick_y);
+            armServoL.setPower(gamepad2.right_stick_y);
 
             if (gamepad2.right_trigger > 0.3) {
                 intakeServoR.setPower(1.0);
@@ -277,8 +291,9 @@ public class MecanumTeleOp extends LinearOpMode {
                 slideMotorR.setPower(0);
                 slideMotorL.setPower(0);
             }
-            /*
-            while (gamepad2.right_bumper) {
+
+            //***** change from while to if - not tested
+            if (gamepad2.right_bumper) {
                 if (slideExtendR >= 0 && slideExtendL <= 1) {
                     slideExtendR += 0.1;
                     slideExtendL -= 0.1;
@@ -287,7 +302,8 @@ public class MecanumTeleOp extends LinearOpMode {
                 }
             }
 
-            while (gamepad2.left_bumper) {
+            //***** change from while to if - not tested
+            if (gamepad2.left_bumper) {
                 if (slideExtendR <= 1 && slideExtendL >= 0) {
                     slideExtendR -= 0.1;
                     slideExtendL += 0.1;
@@ -295,7 +311,7 @@ public class MecanumTeleOp extends LinearOpMode {
                     extendServoL.setPosition(slideExtendL);
                 }
             }
-            */
+
             telemetry.update();
 
         }
