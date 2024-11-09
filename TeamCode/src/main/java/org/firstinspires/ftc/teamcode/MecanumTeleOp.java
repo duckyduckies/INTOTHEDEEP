@@ -55,8 +55,8 @@ public class MecanumTeleOp extends LinearOpMode {
         Servo wristServo = hardwareMap.servo.get("WristServo");
         wristServo.setPosition(wristPosition); // up
 
-        double armPositionR = 0.5; //midpoint
-        double armPositionL = 0.5; //midpoint
+        double armPositionR = 0.1; //midpoint
+        double armPositionL = 0.9; //midpoint
         Servo armServoR = hardwareMap.servo.get("ArmServoR");
         Servo armServoL = hardwareMap.servo.get("ArmServoL");
         armServoR.setPosition(armPositionR);
@@ -162,13 +162,13 @@ public class MecanumTeleOp extends LinearOpMode {
                 wristServo.setPosition(0);
             }
             */
-            if (gamepad2.dpad_up) {
+            while (gamepad2.dpad_up) {
                 if (wristPosition <= 1) {
                     wristPosition += 0.1;
                     wristServo.setPosition(wristPosition);
                 }
             }
-            if (gamepad2.dpad_down) {
+            while (gamepad2.dpad_down) {
                 if (wristPosition >= 0) {
                     wristPosition -= 0.1;
                     wristServo.setPosition(wristPosition);
@@ -179,6 +179,7 @@ public class MecanumTeleOp extends LinearOpMode {
                 telemetry.addData("wristPostiion:", wristPosition);
             }
 
+            /*
             if (gamepad2.left_stick_y > 0.3) {
                 if (armPositionR <= 1 && armPositionL >= 0) {
                     armPositionR += 0.1;
@@ -194,6 +195,14 @@ public class MecanumTeleOp extends LinearOpMode {
                     armServoR.setPosition(armPositionR);
                     armServoL.setPosition(armPositionL);
                 }
+            }
+            */
+
+            if (gamepad1.x) {
+                armPositionR = 1;
+                armPositionL = 0;
+                armServoR.setPosition(armPositionR);
+                armServoL.setPosition(armPositionL);
             }
 
             if (debug_mode) {
