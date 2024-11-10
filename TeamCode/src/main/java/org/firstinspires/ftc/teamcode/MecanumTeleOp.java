@@ -312,6 +312,13 @@ public class MecanumTeleOp extends LinearOpMode {
                 }
             }
 
+            if (gamepad1.b) {
+                extendServoR.setPosition(0);
+                extendServoL.setPosition(1);
+                slideMotorR.setTargetPosition(0);
+                slideMotorL.setTargetPosition(0);
+                wristServo.setPosition(0);
+            }
             telemetry.update();
 
         }
