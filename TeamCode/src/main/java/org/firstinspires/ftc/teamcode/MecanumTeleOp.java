@@ -46,10 +46,13 @@ public class MecanumTeleOp extends LinearOpMode {
         frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         backRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
-        DcMotor slideMotorR = hardwareMap.dcMotor.get("SlideMotorR");
-        DcMotor slideMotorL = hardwareMap.dcMotor.get("SlideMotorL");
-        slideMotorR.setDirection(DcMotorSimple.Direction.FORWARD);
-        slideMotorL.setDirection(DcMotorSimple.Direction.REVERSE);
+        //DcMotor slideMotorR = hardwareMap.dcMotor.get("SlideMotorR");
+        DcMotor slideMotor = hardwareMap.dcMotor.get("SlideMotor");
+        //slideMotorR.setDirection(DcMotorSimple.Direction.FORWARD);
+        slideMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        DcMotor armMotor = hardwareMap.dcMotor.get("ArmMotor");
+        slideMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         double wristPosition = 1;
         Servo wristServo = hardwareMap.servo.get("WristServo");
@@ -62,12 +65,13 @@ public class MecanumTeleOp extends LinearOpMode {
         armServoR.setPosition(armPositionR);
         armServoL.setPosition(armPositionL);
 */
+        /*
 
         CRServo armServoR = hardwareMap.crservo.get("ArmServoR");
         CRServo armServoL = hardwareMap.crservo.get("ArmServoL");
         armServoR.setPower(0);
         armServoL.setPower(0);
-
+*/
         CRServo intakeServoR = hardwareMap.crservo.get("IntakeServoR");
         CRServo intakeServoL = hardwareMap.crservo.get("IntakeServoL");
         intakeServoR.setPower(0);
@@ -221,9 +225,8 @@ public class MecanumTeleOp extends LinearOpMode {
             }
              */
 
-            //***** change from servos to CRServos
-            armServoR.setPower(-gamepad2.right_stick_y);
-            armServoL.setPower(gamepad2.right_stick_y);
+            //***** change from servos to CRServos and to motor
+            armMotor.setPower(-gamepad2.right_stick_y/3);
 
             if (gamepad2.right_trigger > 0.3) {
                 intakeServoR.setPower(1.0);
@@ -245,15 +248,12 @@ public class MecanumTeleOp extends LinearOpMode {
             }
 
             if (gamepad1.y) {
-                slideMotorR.setTargetPosition(500);
-                slideMotorL.setTargetPosition(500);
-                slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                slideMotorR.setPower(0.2);
-                slideMotorL.setPower(0.2);
+                slideMotor.setTargetPosition(500);
+                slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                slideMotor.setPower(0.2);
 
                 runtime.reset();
-                while (opModeIsActive() && (runtime.seconds() < 3) && slideMotorR.isBusy() && slideMotorL.isBusy()) {
+                while (opModeIsActive() && (runtime.seconds() < 3) && slideMotor.isBusy()) {
                 }
             }
 
@@ -282,41 +282,42 @@ public class MecanumTeleOp extends LinearOpMode {
             }
 
             if (gamepad2.left_stick_y < 0) {
-                slideMotorR.setPower(-gamepad2.left_stick_y);
-                slideMotorL.setPower(-gamepad2.left_stick_y);
+                slideMotor.setPower(-gamepad2.left_stick_y);
             } else if (gamepad2.left_stick_y > 0) {
-                slideMotorR.setPower(-gamepad2.left_stick_y);
-                slideMotorL.setPower(-gamepad2.left_stick_y);
+                slideMotor.setPower(-gamepad2.left_stick_y);
             } else {
-                slideMotorR.setPower(0);
-                slideMotorL.setPower(0);
+                slideMotor.setPower(0);
             }
 
             //***** change from while to if - not tested
             if (gamepad2.right_bumper) {
-                if (slideExtendR >= 0 && slideExtendL <= 1) {
-                    slideExtendR += 0.1;
-                    slideExtendL -= 0.1;
+                    slideExtendR = 1;
+                    slideExtendL = 0;
                     extendServoR.setPosition(slideExtendR);
                     extendServoL.setPosition(slideExtendL);
-                }
             }
 
             //***** change from while to if - not tested
             if (gamepad2.left_bumper) {
-                if (slideExtendR <= 1 && slideExtendL >= 0) {
-                    slideExtendR -= 0.1;
-                    slideExtendL += 0.1;
+                    slideExtendR = 0;
+                    slideExtendL = 1;
                     extendServoR.setPosition(slideExtendR);
                     extendServoL.setPosition(slideExtendL);
-                }
             }
 
             if (gamepad1.b) {
                 extendServoR.setPosition(0);
                 extendServoL.setPosition(1);
-                slideMotorR.setTargetPosition(0);
-                slideMotorL.setTargetPosition(0);
+                // still missing arm
+                /*
+                slideMotor.setTargetPosition(0);
+                slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                slideMotor.setPower(0.3);
+
+                runtime.reset();
+                while (opModeIsActive() && (runtime.seconds() < 3) && slideMotor.isBusy()) {
+                }
+                */
                 wristServo.setPosition(0);
             }
             telemetry.update();
