@@ -36,40 +36,54 @@ public class MecanumTeleOp extends LinearOpMode {
         DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeftMotor");
         DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRightMotor");
         DcMotor backRightMotor = hardwareMap.dcMotor.get("backRightMotor");
-        DcMotor LSMotorR = hardwareMap.dcMotor.get("LSMotorR");
-        DcMotor LSMotorL = hardwareMap.dcMotor.get("LSMotorL");
-        DcMotor SlideMotorR = hardwareMap.dcMotor.get("RightSlideMotor");
-        DcMotor SlideMotorL = hardwareMap.dcMotor.get("LeftSlideMotor");
+
         // Reverse the right side motors. This may be wrong for your setup.
         // If your robot moves backwards when commanded to go forwards,
         // reverse the left side instead.
         // See the note about this earlier on this page.
-        double LSPositionR = LSMotorR.getCurrentPosition();
-        double LSPositionL = LSMotorL.getCurrentPosition();
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         frontLeftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         backRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
-        DcMotor slideMotorR = hardwareMap.dcMotor.get("SlideMotorR");
-        DcMotor slideMotorL = hardwareMap.dcMotor.get("SlideMotorL");
-        slideMotorR.setDirection(DcMotorSimple.Direction.FORWARD);
-        slideMotorL.setDirection(DcMotorSimple.Direction.REVERSE);
+        //DcMotor slideMotorR = hardwareMap.dcMotor.get("SlideMotorR");
+        DcMotor slideMotor = hardwareMap.dcMotor.get("SlideMotor");
+        //slideMotorR.setDirection(DcMotorSimple.Direction.FORWARD);
+        slideMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
-        double wristPosition = 1;
+        DcMotor armMotor = hardwareMap.dcMotor.get("ArmMotor");
+        armMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        double wristPosition = 1; // default position is down
         Servo wristServo = hardwareMap.servo.get("WristServo");
-        wristServo.setPosition(wristPosition); // up
-
-        double armPosition = 1; //up
+        wristServo.setPosition(wristPosition);
+/*
+        double armPositionR = 0.6; //midpoint
+        double armPositionL = 0.4; //midpoint
         Servo armServoR = hardwareMap.servo.get("ArmServoR");
         Servo armServoL = hardwareMap.servo.get("ArmServoL");
-        armServoR.setPosition(armPosition);
-        armServoL.setPosition(armPosition);
+        armServoR.setPosition(armPositionR);
+        armServoL.setPosition(armPositionL);
+*/
+        /*
 
+        CRServo armServoR = hardwareMap.crservo.get("ArmServoR");
+        CRServo armServoL = hardwareMap.crservo.get("ArmServoL");
+        armServoR.setPower(0);
+        armServoL.setPower(0);
+*/
         CRServo intakeServoR = hardwareMap.crservo.get("IntakeServoR");
         CRServo intakeServoL = hardwareMap.crservo.get("IntakeServoL");
         intakeServoR.setPower(0);
         intakeServoL.setPower(0);
+
+        Servo extendServoR = hardwareMap.servo.get("ExtendServoR");  
+        Servo extendServoL = hardwareMap.servo.get("ExtendServoL");
+        extendServoR.setPosition(1);
+        extendServoL.setPosition(0);
+        double slideExtendR = 0;
+        double slideExtendL = 0;
 
         final float[] hsvValues = new float[3];
         NormalizedColorSensor colorSensor = hardwareMap.get(NormalizedColorSensor.class, "ColorSensor");
@@ -82,7 +96,6 @@ public class MecanumTeleOp extends LinearOpMode {
         if (isStopRequested()) return;
 
         while (opModeIsActive()) {
-
             // Click "back" button to toggle the debug view
 
             if (gamepad1.back || gamepad2.back) {
@@ -141,14 +154,14 @@ public class MecanumTeleOp extends LinearOpMode {
             backRightMotor.setPower(backRightPower_mod);
 
             if (debug_mode) {
-                telemetry.addData("frontLeftPower_mod: ", frontLeftPower);
-                telemetry.addData("frontLeftPower_mod: ", backLeftPower);
-                telemetry.addData("frontLeftPower_mod: ", frontRightPower);
-                telemetry.addData("frontLeftPower_mod: ", backRightPower);
+                telemetry.addData("frontLeftPower: ", frontLeftPower);
+                telemetry.addData("backLeftPower: ", backLeftPower);
+                telemetry.addData("frontRightPower: ", frontRightPower);
+                telemetry.addData("backRightPower: ", backRightPower);
                 telemetry.addData("frontLeftPower_mod: ", frontLeftPower_mod);
-                telemetry.addData("frontLeftPower_mod: ", backLeftPower_mod);
-                telemetry.addData("frontLeftPower_mod: ", frontRightPower_mod);
-                telemetry.addData("frontLeftPower_mod: ", backRightPower_mod);
+                telemetry.addData("backLeftPower_mod: ", backLeftPower_mod);
+                telemetry.addData("frontRightPower_mod: ", frontRightPower_mod);
+                telemetry.addData("backRightPower_mod: ", backRightPower_mod);
             }
 
             // Wrist
@@ -160,40 +173,62 @@ public class MecanumTeleOp extends LinearOpMode {
                 wristServo.setPosition(0);
             }
             */
-            if (gamepad2.dpad_up) {
-                if (wristPosition <= 1) {
-                    wristPosition += 0.1;
-                    wristServo.setPosition(wristPosition);
-                }
-            }
-            if (gamepad2.dpad_down) {
-                if (wristPosition >= 0) {
-                    wristPosition -= 0.1;
-                    wristServo.setPosition(wristPosition);
-                }
-            }
 
+            //***** change from while to if - not tested
+            if (gamepad2.dpad_down) { // wrist down
+                if (wristPosition <= 1) {
+                    wristPosition += 0.05;
+                    wristServo.setPosition(wristPosition);
+                }
+            }
+            //***** change from while to if - not tested
+            if (gamepad2.dpad_up) {
+                if (wristPosition >= 0) { // wrist up
+                    wristPosition -= 0.05;
+                    wristServo.setPosition(wristPosition);
+                }
+            }
             if (debug_mode) {
                 telemetry.addData("wristPostiion:", wristPosition);
             }
 
+            /*
             if (gamepad2.left_stick_y > 0.3) {
-                if (armPosition <= 1) {
-                    armPosition += 0.1;
-                    armServoR.setPosition(wristPosition);
-                    armServoL.setPosition(wristPosition);
+                if (armPositionR <= 1 && armPositionL >= 0) {
+                    armPositionR += 0.1;
+                    armPositionL -= 0.1;
+                    armServoR.setPosition(armPositionR);
+                    armServoL.setPosition(armPositionL);
                 }
             }
-            if (gamepad2.left_stick_y > -0.3) {
-                if (armPosition >= 0) {
-                    armPosition -= 0.1;
-                    armServoR.setPosition(armPosition);
-                    armServoL.setPosition(armPosition);
+            if (gamepad2.left_stick_y < -0.3) {
+                if (armPositionR >= 0 && armPositionL <= 1) {
+                    armPositionR -= 0.1;
+                    armPositionL += 0.1;
+                    armServoR.setPosition(armPositionR);
+                    armServoL.setPosition(armPositionL);
                 }
             }
 
+
+            if (gamepad1.x) {
+                armPositionR = 0.5;
+                armPositionL = 0.5;
+                armServoR.setPosition(armPositionR);
+                armServoL.setPosition(armPositionL);
+            }
+
             if (debug_mode) {
-                telemetry.addData("armPosition:", armPosition);
+                telemetry.addData("armPositionR:", armPositionR);
+                telemetry.addData("armPositionL:", armPositionL);
+
+            }
+             */
+
+            //***** change from servos to CRServos and to motor
+            armMotor.setPower(-gamepad2.right_stick_y/4);
+            if (debug_mode) {
+                telemetry.addData("armPosition:", armMotor.getCurrentPosition());
             }
 
             if (gamepad2.right_trigger > 0.3) {
@@ -216,15 +251,12 @@ public class MecanumTeleOp extends LinearOpMode {
             }
 
             if (gamepad1.y) {
-                slideMotorR.setTargetPosition(500);
-                slideMotorL.setTargetPosition(500);
-                slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                slideMotorR.setPower(0.2);
-                slideMotorL.setPower(0.2);
+                slideMotor.setTargetPosition(500);
+                slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                slideMotor.setPower(0.2);
 
                 runtime.reset();
-                while (opModeIsActive() && (runtime.seconds() < 3) && slideMotorR.isBusy() && slideMotorL.isBusy()) {
+                while (opModeIsActive() && (runtime.seconds() < 3) && slideMotor.isBusy()) {
                 }
             }
 
@@ -242,53 +274,70 @@ public class MecanumTeleOp extends LinearOpMode {
 
 
             if (gamepad1.right_bumper) {
-                LSMotorR.setPower(0.2);
-                LSMotorL.setPower(0.2);
+                LSMotorR.setPower(0.5);
+                LSMotorL.setPower(0.5);
             } else if (gamepad1.left_bumper) {
-                LSMotorR.setPower(-0.2);
-                LSMotorL.setPower(-0.2);
+                LSMotorR.setPower(-0.5);
+                LSMotorL.setPower(-0.5);
             } else {
                 LSMotorR.setPower(0);
                 LSMotorL.setPower(0);
             }
 
             if (gamepad2.left_stick_y < 0) {
-                slideMotorR.setPower(-gamepad2.left_stick_y);
-                slideMotorL.setPower(-gamepad2.left_stick_y);
+                slideMotor.setPower(-0.5);
             } else if (gamepad2.left_stick_y > 0) {
-                slideMotorR.setPower(-gamepad2.left_stick_y);
-                slideMotorL.setPower(-gamepad2.left_stick_y);
+                slideMotor.setPower(-gamepad2.left_stick_y);
             } else {
-                slideMotorR.setPower(0);
-                slideMotorL.setPower(0);
+                slideMotor.setPower(0);
             }
 
-            if(gamepad1.right_bumper){
-                LSMotorR.setPower(0.2);
-                LSMotorL.setPower(0.2);
-            }
-            else if (gamepad1.left_bumper){
-                LSMotorR.setPower(-0.2);
-                LSMotorL.setPower(-0.2);
-            }
-            else {
-                LSMotorR.setPower(0);
-                LSMotorL.setPower(0);
-            }
-            if(gamepad2.left_stick_y<0){
-                SlideMotorR.setPower(-gamepad2.left_stick_y);
-                SlideMotorL.setPower(-gamepad2.left_stick_y);
-            }
-            else if (gamepad2.left_stick_y>0){
-                SlideMotorR.setPower(-gamepad2.left_stick_y);
-                SlideMotorL.setPower(-gamepad2.left_stick_y);
-            }
-            else {
-                SlideMotorR.setPower(0);
-                SlideMotorL.setPower(0);
+            //***** change from while to if - not tested
+            if (gamepad2.right_bumper) {
+                    slideExtendR = 1;
+                    slideExtendL = 0;
+                    extendServoR.setPosition(slideExtendR);
+                    extendServoL.setPosition(slideExtendL);
             }
 
+            //***** change from while to if - not tested
+            if (gamepad2.left_bumper) {
+                    slideExtendR = 0;
+                    slideExtendL = 1;
+                    extendServoR.setPosition(slideExtendR);
+                    extendServoL.setPosition(slideExtendL);
+            }
+            if (gamepad2.a){ // intake
+                armMotor.setTargetPosition(-500);
+                armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                armMotor.setPower(0.3);
+
+                wristPosition=(0.4);
+                wristServo.setPosition(wristPosition);
+
+                armMotor.setTargetPosition(-1100);
+                armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                armMotor.setPower(0.3);
+                extendServoR.setPosition(0);
+                extendServoL.setPosition(1);
+            }
+            if (gamepad2.b) { // outtake at high basket
+                extendServoR.setPosition(0);
+                extendServoL.setPosition(1);
+                // still missing arm
+                /*
+                slideMotor.setTargetPosition(0);
+                slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                slideMotor.setPower(0.3);
+
+                runtime.reset();
+                while (opModeIsActive() && (runtime.seconds() < 3) && slideMotor.isBusy()) {
+                }
+                */
+                wristServo.setPosition(0);
+            }
             telemetry.update();
+
         }
     }
 
