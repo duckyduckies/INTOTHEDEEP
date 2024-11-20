@@ -254,8 +254,9 @@ public class MecanumTeleOp extends LinearOpMode {
             } else {
                 intakeServoR.setPower(0);
                 intakeServoL.setPower(0);
-                if (!((intakedirection == 0)||(intakedirection == -1)||(intakedirection == 1)));
+                if (!((intakedirection == 0)||(intakedirection == -1)||(intakedirection == 1))) {
                     intakedirection = 0;
+                }
             }
 
 
