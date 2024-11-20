@@ -230,7 +230,7 @@ public class MecanumTeleOp extends LinearOpMode {
             if (debug_mode) {
                 telemetry.addData("armPosition:", armMotor.getCurrentPosition());
             }
-//CY CHANGE--------------------------------------ONE CLICK CONTINUOUS BUMPER CONTROLS----------------------------
+// CY CHANGE----------------------TRIGGER FUNCTIONS NOW SET TO BUMPER--------------------------------//CY CHANGE--------------------------------------ONE CLICK CONTINUOUS BUMPER CONTROLS----------------------------
             if (gamepad2.right_bumper) {
                 if (intakedirection == 1) {
                     intakedirection = 0;
@@ -291,7 +291,7 @@ public class MecanumTeleOp extends LinearOpMode {
                     .addData("Value", "%.3f", hsvValues[2]);
             telemetry.addData("Alpha", "%.3f", colors.alpha);
 
-// CY CHANGE----------------------TRIGGER FUNCTIONS NOW SET TO BUMPER--------------------------------
+
             if (gamepad1.right_bumper) {
                 LSMotorR.setPower(0.5);
                 LSMotorL.setPower(0.5);
@@ -316,7 +316,7 @@ public class MecanumTeleOp extends LinearOpMode {
                 slideExtend = slideExtend + 0.1 * gamepad2.right_trigger;
                 extendServoR.setPosition(slideExtend);
                 extendServoL.setPosition(-slideExtend);
-            } else if (gamepad2.left_trigger > 0.1) {
+            } else if (gamepad2.left_trigger > 0.1 && (slideExtend < 1)) {
                 slideExtend = slideExtend - 0.1 * gamepad2.left_trigger;
                 extendServoR.setPosition(slideExtend);
                 extendServoL.setPosition(-slideExtend);
