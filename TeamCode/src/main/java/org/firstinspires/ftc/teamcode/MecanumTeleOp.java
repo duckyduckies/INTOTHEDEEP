@@ -68,6 +68,12 @@ public class MecanumTeleOp extends LinearOpMode {
         intakeServoR.setPower(0);
         intakeServoL.setPower(0);
 
+        // Intake state:
+        // 0: Not rotating
+        // 1: Intake
+        // 2: Outake
+        int intakePressed = 0;
+
         /***************** 6. MiSUMi Slides *****************/
         Servo extendServoR = hardwareMap.servo.get("ExtendServoR");
         Servo extendServoL = hardwareMap.servo.get("ExtendServoL");
@@ -240,15 +246,26 @@ public class MecanumTeleOp extends LinearOpMode {
             }
 
             /***************** 5. Claw Intake *****************/
-            if (gamepad2.right_trigger > 0.3) {
+            if (intakePressed == 1) {
+                if (gamepad2.right_trigger > 0.3) {//brake
+                    intakePressed = 0;
+                    intakeServoR.setPower(0);
+                    intakeServoL.setPower(0);
+                }
+            } else if (intakePressed == 2) {
+                if (gamepad2.left_trigger > 0.3) {//brake
+                    intakePressed = 0;
+                    intakeServoR.setPower(0);
+                    intakeServoL.setPower(0);
+                }
+            } else if (gamepad2.right_trigger > 0.3) { //intake
+                intakePressed = 1;
                 intakeServoR.setPower(1.0);
                 intakeServoL.setPower(-1.0);
-            } else if (gamepad2.left_trigger > 0.3) {
+            } else if (gamepad2.left_trigger > 0.3) { //outtake
+                intakePressed = 2;
                 intakeServoR.setPower(-1.0);
                 intakeServoL.setPower(1.0);
-            } else {
-                intakeServoR.setPower(0);
-                intakeServoL.setPower(0);
             }
 
             /***************** 6. MiSUMi Slides *****************/
