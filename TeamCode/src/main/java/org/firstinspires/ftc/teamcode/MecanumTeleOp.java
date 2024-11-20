@@ -25,6 +25,7 @@ public class MecanumTeleOp extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+        // CONFIGURATION--------------------------------------------------------------
         boolean debug_mode = true;
         Gamepad.RumbleEffect rumbleEffect = new Gamepad.RumbleEffect.Builder()
                 .addStep(1.0, 1.0, 500)  //  Rumble right motor 100% for 500 mSec
@@ -73,6 +74,7 @@ public class MecanumTeleOp extends LinearOpMode {
         // 1: Intake
         // 2: Outake
         int intakePressed = 0;
+        //int intakedirection = 0;
 
         /***************** 6. MiSUMi Slides *****************/
         Servo extendServoR = hardwareMap.servo.get("ExtendServoR");
@@ -81,12 +83,14 @@ public class MecanumTeleOp extends LinearOpMode {
         extendServoL.setPosition(0);
         double slideExtendR = 1;
         double slideExtendL = 0;
+        //double slideExtend = 0;
 
         /***************** 7. Lead Screw *****************/
         DcMotor LSMotorR = hardwareMap.dcMotor.get("LSMotorR");
         DcMotor LSMotorL = hardwareMap.dcMotor.get("LSMotorL");
         int LSPositionL = 0;
         int LSPositionR = 0;
+
         /***************** 8. Color Sensor *****************/
         final float[] hsvValues = new float[3];
         NormalizedColorSensor colorSensor = hardwareMap.get(NormalizedColorSensor.class, "ColorSensor");
@@ -94,7 +98,7 @@ public class MecanumTeleOp extends LinearOpMode {
         waitForStart();
 
         if (isStopRequested()) return;
-
+//OP MODE CODE-------------------------------------------------------------------------
         while (opModeIsActive()) {
             // Click "back" button to toggle the debug view
 
@@ -268,6 +272,36 @@ public class MecanumTeleOp extends LinearOpMode {
                 intakeServoL.setPower(1.0);
             }
 
+            /*
+                        if (gamepad2.right_bumper) {
+                if (intakedirection == 1) {
+                    intakedirection = 0;
+                } else {
+                    intakedirection = 1;
+                }
+            } else if (gamepad2.left_bumper) {
+                if (intakedirection == -1) {
+                    intakedirection = 0;
+                } else {
+                    intakedirection = -1;
+                }
+            }
+
+            if (intakedirection == 1){
+                intakeServoR.setPower(-1.0);
+                intakeServoL.setPower(1.0);
+            } else if (intakedirection == -1){
+                intakeServoR.setPower(1.0);
+                intakeServoL.setPower(-1.0);
+            } else {
+                intakeServoR.setPower(0);
+                intakeServoL.setPower(0);
+                if (!((intakedirection == 0)||(intakedirection == -1)||(intakedirection == 1))) {
+                    intakedirection = 0;
+                }
+            }
+             */
+
             /***************** 6. MiSUMi Slides *****************/
             slideExtendR = extendServoR.getPosition();
             slideExtendL = extendServoL.getPosition();
@@ -291,6 +325,21 @@ public class MecanumTeleOp extends LinearOpMode {
                 telemetry.addData("slideExtendL:", slideExtendL);
                 telemetry.addData("slideExtendR:", slideExtendR);
             }
+            /*
+            /CY CHANGE--------------------------------Changed to variable speed + position, controls changed from bumper to trigger---------------------------------
+            if ((gamepad2.right_trigger > 0.1) && (slideExtend > 0)) {
+                slideExtend = slideExtend + 0.1 * gamepad2.right_trigger;
+                extendServoR.setPosition(slideExtend);
+                extendServoL.setPosition(-slideExtend);
+            } else if (gamepad2.left_trigger > 0.1 && (slideExtend < 1)) {
+                slideExtend = slideExtend - 0.1 * gamepad2.left_trigger;
+                extendServoR.setPosition(slideExtend);
+                extendServoL.setPosition(-slideExtend);
+            } else {
+                extendServoL.setPosition(slideExtend);
+                extendServoR.setPosition(-slideExtend);
+            }
+             */
 
             /***************** 7. Lead Screw *****************/
             LSPositionR = LSMotorR.getCurrentPosition();
