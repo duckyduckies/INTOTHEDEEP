@@ -27,11 +27,92 @@ public class RedAuto extends LinearOpMode {
         frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         backRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
+        double frontLeftPower = 0;
+        double backLeftPower = 0;
+        double frontRightPower = 0;
+        double backRightPower = 0;
+
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
-        // Autonomous actions
-        driveForward(1.0, 2000); // Drive forward with full power for 2 seconds
-        strafeRight(0.5, 1000);  //
+        double y = -0;
+        double x = 0.3 * 1.1;
+        double rx = 0;
+
+        frontLeftPower = ((y + x + rx));
+        backLeftPower = ((y - x + rx));
+        frontRightPower = ((y - x - rx));
+        backRightPower = ((y + x - rx));
+        frontLeftMotor.setPower(frontLeftPower);
+        backLeftMotor.setPower(backLeftPower);
+        frontRightMotor.setPower(frontRightPower);
+        backRightMotor.setPower(backRightPower);
+
+        try {
+            Thread.sleep(700); // Sleep for 1 second (1000 milliseconds)
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        frontLeftMotor.setPower(0);
+        backLeftMotor.setPower(0);
+        frontRightMotor.setPower(0);
+        backRightMotor.setPower(0);
+        try {
+            Thread.sleep(200); // Sleep for 1 second (1000 milliseconds)
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        y = -0;
+        x = 0 * 1.1;
+        rx = 0.5;
+
+        frontLeftPower = ((y + x + rx));
+        backLeftPower = ((y - x + rx));
+        frontRightPower = ((y - x - rx));
+        backRightPower = ((y + x - rx));
+        frontLeftMotor.setPower(frontLeftPower);
+        backLeftMotor.setPower(backLeftPower);
+        frontRightMotor.setPower(frontRightPower);
+        backRightMotor.setPower(backRightPower);
+
+        try {
+            Thread.sleep(500); // Sleep for 1 second (1000 milliseconds)
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        y = -0.5;
+        x = 0 * 1.1;
+        rx = 0;
+
+        frontLeftPower = ((y + x + rx));
+        backLeftPower = ((y - x + rx));
+        frontRightPower = ((y - x - rx));
+        backRightPower = ((y + x - rx));
+        frontLeftMotor.setPower(frontLeftPower);
+        backLeftMotor.setPower(backLeftPower);
+        frontRightMotor.setPower(frontRightPower);
+        backRightMotor.setPower(backRightPower);
+
+        try {
+            Thread.sleep(500); // Sleep for 0.5 second (500 milliseconds)
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        frontLeftMotor.setPower(0);
+        backLeftMotor.setPower(0);
+        frontRightMotor.setPower(0);
+        backRightMotor.setPower(0);
+        try {
+            Thread.sleep(200); // Sleep for 0.2 second (200 milliseconds)
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        //Insert arm code here
+        try {
+            Thread.sleep(200); // Sleep for 0.2 second (200 milliseconds)
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }
