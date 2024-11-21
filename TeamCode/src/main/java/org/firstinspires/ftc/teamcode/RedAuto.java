@@ -65,7 +65,7 @@ public class RedAuto extends LinearOpMode {
 
         y = -0;
         x = 0 * 1.1;
-        rx = 0.5;
+        rx = -0.5;
 
         frontLeftPower = ((y + x + rx));
         backLeftPower = ((y - x + rx));
@@ -111,6 +111,42 @@ public class RedAuto extends LinearOpMode {
         //Insert arm code here
         try {
             Thread.sleep(200); // Sleep for 0.2 second (200 milliseconds)
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        y = -0;
+        x = 0 * 1.1;
+        rx = -0.5;
+
+        frontLeftPower = ((y + x + rx));
+        backLeftPower = ((y - x + rx));
+        frontRightPower = ((y - x - rx));
+        backRightPower = ((y + x - rx));
+        frontLeftMotor.setPower(frontLeftPower);
+        backLeftMotor.setPower(backLeftPower);
+        frontRightMotor.setPower(frontRightPower);
+        backRightMotor.setPower(backRightPower);
+
+        try {
+            Thread.sleep(500); // Sleep for 1 second (1000 milliseconds)
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        y = -1;
+        x = 0 * 1.1;
+        rx = 0;
+
+        frontLeftPower = ((y + x + rx));
+        backLeftPower = ((y - x + rx));
+        frontRightPower = ((y - x - rx));
+        backRightPower = ((y + x - rx));
+        frontLeftMotor.setPower(frontLeftPower);
+        backLeftMotor.setPower(backLeftPower);
+        frontRightMotor.setPower(frontRightPower);
+        backRightMotor.setPower(backRightPower);
+
+        try {
+            Thread.sleep(500); // Sleep for 0.5 second (500 milliseconds)
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
