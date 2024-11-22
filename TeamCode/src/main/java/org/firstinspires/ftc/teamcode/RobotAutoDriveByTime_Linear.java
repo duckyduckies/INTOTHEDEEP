@@ -72,7 +72,6 @@ public class RobotAutoDriveByTime_Linear extends LinearOpMode {
      * Mecanum Drivetrain
      * Calculates the left/right front/rear motor powers required to achieve the requested
      * robot motions: ...
-     *
      * @param x
      * @param y
      * @param rx
