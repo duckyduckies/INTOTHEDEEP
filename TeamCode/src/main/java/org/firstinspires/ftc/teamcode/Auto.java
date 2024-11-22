@@ -12,7 +12,7 @@ public class Auto extends LinearOpMode {
     private DcMotor frontRightMotor = null;
     private DcMotor backLeftMotor = null;
     private DcMotor backRightMotor = null;
-
+    private DcMotor armMotor = null;
     @Override
     public void runOpMode() {
         // Initialize the hardware variables
@@ -20,7 +20,7 @@ public class Auto extends LinearOpMode {
         frontRightMotor = hardwareMap.get(DcMotor.class, "frontRightMotor");
         backLeftMotor = hardwareMap.get(DcMotor.class, "backLeftMotor");
         backRightMotor = hardwareMap.get(DcMotor.class, "backRightMotor");
-
+        armMotor = hardwareMap.get(DcMotor.class, "backRightMotor");
         // Set the direction of the motors
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         frontLeftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
