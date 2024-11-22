@@ -21,23 +21,115 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class MecanumTeleOp extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
+    // Declare our motors
+    // Make sure your ID's match your configuration
+    DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeftMotor");
+    DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeftMotor");
+    DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRightMotor");
+    DcMotor backRightMotor = hardwareMap.dcMotor.get("backRightMotor");
+    boolean debug_mode = true;
+
+    private class DriveThread extends Thread
+    {
+        public DriveThread()
+        {
+            this.setName("DriveThread");
+        }
 
 
+        /**
+         * Mecanum Drivetrain
+         * Calculates the left/right front/rear motor powers required to achieve the requested
+         * robot motions: ...
+         * @param x
+         * @param y
+         * @param rx
+         * @param powerScale
+         */
+        public void move(double x, double y, double rx, double powerScale) {
+            double denominator,frontLeftPower,backLeftPower,frontRightPower,backRightPower;
+            double frontLeftPower_mod,backLeftPower_mod,frontRightPower_mod,backRightPower_mod;
+            // Denominator is the largest motor power (absolute value) or 1
+            // This ensures all the powers maintain the same ratio,
+            // but only if at least one is out of the range [-1, 1]
+            denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
+            frontLeftPower = (y + x + rx) / denominator;
+            backLeftPower = (y - x + rx) / denominator;
+            frontRightPower = (y - x - rx) / denominator;
+            backRightPower = (y + x - rx) / denominator;
+
+            // modify power by using DcMotorPowerModifierAdv()
+            int eqVer = 1;
+            frontLeftPower_mod = DcMotorPowerModifierAdv(frontLeftPower, eqVer);
+            backLeftPower_mod = DcMotorPowerModifierAdv(backLeftPower, eqVer);
+            frontRightPower_mod = DcMotorPowerModifierAdv(frontRightPower, eqVer);
+            backRightPower_mod = DcMotorPowerModifierAdv(backRightPower, eqVer);
+
+            frontLeftMotor.setPower(frontLeftPower_mod);
+            backLeftMotor.setPower(backLeftPower_mod);
+            frontRightMotor.setPower(frontRightPower_mod);
+            backRightMotor.setPower(backRightPower_mod);
+
+            if (debug_mode) {
+                telemetry.addData("frontLeftPower: ", frontLeftPower);
+                telemetry.addData("backLeftPower: ", backLeftPower);
+                telemetry.addData("frontRightPower: ", frontRightPower);
+                telemetry.addData("backRightPower: ", backRightPower);
+                telemetry.addData("frontLeftPower_mod: ", frontLeftPower_mod);
+                telemetry.addData("backLeftPower_mod: ", backLeftPower_mod);
+                telemetry.addData("frontRightPower_mod: ", frontRightPower_mod);
+                telemetry.addData("backRightPower_mod: ", backRightPower_mod);
+            }
+        }
+
+        // called when tread.start is called. thread stays in loop to do what it does until exit is
+        // signaled by main code calling thread.interrupt.
+        @Override
+        public void run()
+        {
+            try
+            {
+                double x,y,rx;
+                while (opModeIsActive() && !isInterrupted())
+                {
+                    /***************** 1. Mecanum Drivetrain *****************/
+                    y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
+                    x = gamepad1.left_stick_x; // Counteract imperfect strafing
+                    rx = gamepad1.right_stick_x;
+
+                    move(y,x,rx,1);
+
+                    if (gamepad1.dpad_up) {
+                        move(0, 1,0,0.5);
+                    }
+                    else if (gamepad1.dpad_down) {
+                        move(0, -1,0,0.5);
+                    }
+                    else if (gamepad1.dpad_right) {
+                        move(1, 0,0,0.5);
+                    }
+                    else if (gamepad1.dpad_left) {
+                        move(-1, 0,0,0.5);
+                    }
+                    idle();
+                }
+            }
+            // interrupted means time to shutdown. note we can stop by detecting isInterrupted = true
+            // or by the interrupted exception thrown from the sleep function.
+            //catch (InterruptedException e) {telemetry.addData("%s interrupted", this.getName());}
+            // an error occurred in the run loop.
+            catch (Exception e) {e.printStackTrace();}
+        }
+    }
     @Override
     public void runOpMode() throws InterruptedException {
-        boolean debug_mode = true;
+        // CONFIGURATION--------------------------------------------------------------
         Gamepad.RumbleEffect rumbleEffect = new Gamepad.RumbleEffect.Builder()
                 .addStep(1.0, 1.0, 500)  //  Rumble right motor 100% for 500 mSec
                 .build();
 
+        waitForStart();
         /***************** 1. Mecanum Drivetrain *****************/
-        // Declare our motors
-        // Make sure your ID's match your configuration
-        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeftMotor");
-        DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeftMotor");
-        DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRightMotor");
-        DcMotor backRightMotor = hardwareMap.dcMotor.get("backRightMotor");
-
         // Reverse the right side motors. This may be wrong for your setup.
         // If your robot moves backwards when commanded to go forwards,
         // reverse the left side instead.
@@ -46,15 +138,18 @@ public class MecanumTeleOp extends LinearOpMode {
         frontLeftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         backRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        Thread  driveThread = new DriveThread();
+        driveThread.start();
 
         /***************** 2. Viper Slides *****************/
         DcMotor slideMotor = hardwareMap.dcMotor.get("SlideMotor");
         slideMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-
+        int slidePosition = 0;
         /***************** 3. Arm *****************/
         DcMotor armMotor = hardwareMap.dcMotor.get("ArmMotor");
         armMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        int armPosition = 0;
 
         /***************** 4. Wrist *****************/
         double wristPosition = 1; // default position is down
@@ -67,26 +162,34 @@ public class MecanumTeleOp extends LinearOpMode {
         intakeServoR.setPower(0);
         intakeServoL.setPower(0);
 
+        // Intake state:
+        // 0: Not rotating
+        // 1: Intake
+        // 2: Outake
+        int intakePressed = 0;
+        //int intakedirection = 0;
+
         /***************** 6. MiSUMi Slides *****************/
-        Servo extendServoR = hardwareMap.servo.get("ExtendServoR");  
+        Servo extendServoR = hardwareMap.servo.get("ExtendServoR");
         Servo extendServoL = hardwareMap.servo.get("ExtendServoL");
         extendServoR.setPosition(1);
         extendServoL.setPosition(0);
         double slideExtendR = 1;
         double slideExtendL = 0;
+        //double slideExtend = 0;
 
         /***************** 7. Lead Screw *****************/
         DcMotor LSMotorR = hardwareMap.dcMotor.get("LSMotorR");
         DcMotor LSMotorL = hardwareMap.dcMotor.get("LSMotorL");
+        int LSPositionL = 0;
+        int LSPositionR = 0;
 
         /***************** 8. Color Sensor *****************/
         final float[] hsvValues = new float[3];
         NormalizedColorSensor colorSensor = hardwareMap.get(NormalizedColorSensor.class, "ColorSensor");
 
-        waitForStart();
-
         if (isStopRequested()) return;
-
+//OP MODE CODE-------------------------------------------------------------------------
         while (opModeIsActive()) {
             // Click "back" button to toggle the debug view
 
@@ -120,67 +223,13 @@ public class MecanumTeleOp extends LinearOpMode {
 
 
             /***************** 1. Mecanum Drivetrain *****************/
-            double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
-            double x = gamepad1.left_stick_x; // Counteract imperfect strafing
-            double rx = gamepad1.right_stick_x;
 
-            // Denominator is the largest motor power (absolute value) or 1
-            // This ensures all the powers maintain the same ratio,
-            // but only if at least one is out of the range [-1, 1]
-            double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
-            double frontLeftPower = (y + x + rx) / denominator;
-            double backLeftPower = (y - x + rx) / denominator;
-            double frontRightPower = (y - x - rx) / denominator;
-            double backRightPower = (y + x - rx) / denominator;
-
-//          double speedReduction = 0.5;
-
-            //frontLeftPower=Math.pow(Math.tanh(frontLeftPower)/Math.tanh(1),3);
-//            frontLeftMotor.setPower(frontLeftPower*speedReduction);
-            //backLeftPower=Math.pow(Math.tanh(backLeftPower)/Math.tanh(1),3);
-//            backLeftMotor.setPower(backLeftPower*speedReduction);
-            //frontRightPower=Math.pow(Math.tanh(frontRightPower)/Math.tanh(1),3);
-//            frontRightMotor.setPower(frontRightPower*speedReduction);
-            //backRightPower=Math.pow(Math.tanh(backRightPower)/Math.tanh(1),3);
-//            backRightMotor.setPower(backRightPower*speedReduction);
-/*
-            double frontLeftPower_mod = Math.pow(Math.tanh(frontLeftPower)/Math.tanh(1),3);
-            double backLeftPower_mod = Math.pow(Math.tanh(backLeftPower)/Math.tanh(1),3);
-            double frontRightPower_mod = Math.pow(Math.tanh(frontRightPower)/Math.tanh(1),3);
-            double backRightPower_mod = Math.pow(Math.tanh(backRightPower)/Math.tanh(1),3);
-
-            // modify power by using DcMotorPowerModifier()
-            double frontLeftPower_mod = DcMotorPowerModifier(frontLeftPower);
-            double backLeftPower_mod = DcMotorPowerModifier(backLeftPower);
-            double frontRightPower_mod = DcMotorPowerModifier(frontRightPower);
-            double backRightPower_mod = DcMotorPowerModifier(backRightPower);
-*/
-            // modify power by using DcMotorPowerModifierAdv()
-            int eqVer = 1;
-            double frontLeftPower_mod = DcMotorPowerModifierAdv(frontLeftPower, eqVer);
-            double backLeftPower_mod = DcMotorPowerModifierAdv(backLeftPower, eqVer);
-            double frontRightPower_mod = DcMotorPowerModifierAdv(frontRightPower, eqVer);
-            double backRightPower_mod = DcMotorPowerModifierAdv(backRightPower, eqVer);
-
-            frontLeftMotor.setPower(frontLeftPower_mod);
-            backLeftMotor.setPower(backLeftPower_mod);
-            frontRightMotor.setPower(frontRightPower_mod);
-            backRightMotor.setPower(backRightPower_mod);
-
-            if (debug_mode) {
-                telemetry.addData("frontLeftPower: ", frontLeftPower);
-                telemetry.addData("backLeftPower: ", backLeftPower);
-                telemetry.addData("frontRightPower: ", frontRightPower);
-                telemetry.addData("backRightPower: ", backRightPower);
-                telemetry.addData("frontLeftPower_mod: ", frontLeftPower_mod);
-                telemetry.addData("backLeftPower_mod: ", backLeftPower_mod);
-                telemetry.addData("frontRightPower_mod: ", frontRightPower_mod);
-                telemetry.addData("backRightPower_mod: ", backRightPower_mod);
-            }
+            //moved to move function
 
             /***************** 2. Viper Slides *****************/
+            slidePosition = slideMotor.getCurrentPosition();
             if (gamepad2.left_stick_y < 0) {
-                slideMotor.setPower(-0.5);
+                slideMotor.setPower(-gamepad2.left_stick_y);
             } else if (gamepad2.left_stick_y > 0) {
                 slideMotor.setPower(-gamepad2.left_stick_y);
             } else {
@@ -195,13 +244,30 @@ public class MecanumTeleOp extends LinearOpMode {
                 while (opModeIsActive() && (runtime.seconds() < 3) && slideMotor.isBusy()) {
                 }
             }
-
             /***************** 3. Arm *****************/
-            armMotor.setPower(-gamepad2.right_stick_y/4);
+            //armMotor.setPower(-gamepad2.right_stick_y/4);
+            armPosition=armMotor.getCurrentPosition();
             if (debug_mode) {
-                telemetry.addData("armPosition:", armMotor.getCurrentPosition());
+                telemetry.addData("armPosition:", armPosition);
             }
-
+            if (gamepad2.right_stick_y > 0) {
+                armPosition = armPosition + 100;
+                armMotor.setTargetPosition(armPosition);
+                armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                armMotor.setPower(0.5);
+            } else if (gamepad2.right_stick_y > 0) {
+                armPosition = armPosition - 100;
+                armMotor.setTargetPosition(armPosition);
+                armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                armMotor.setPower(-0.5);
+            } else {
+                //armMotor.setPower(0);
+            }
+            if (gamepad1.x) {
+                armMotor.setTargetPosition(-500);
+                armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                armMotor.setPower(0.5);
+            }
             /***************** 4. Wrist *****************/
             if (gamepad2.dpad_down) { // wrist down
                 if (wristPosition <= 1) {
@@ -220,33 +286,100 @@ public class MecanumTeleOp extends LinearOpMode {
             }
 
             /***************** 5. Claw Intake *****************/
-            if (gamepad2.right_trigger > 0.3) {
+            if (intakePressed == 1) {
+                if (gamepad2.right_trigger > 0.3) {//brake
+                    intakePressed = 0;
+                    intakeServoR.setPower(0);
+                    intakeServoL.setPower(0);
+                }
+            } else if (intakePressed == 2) {
+                if (gamepad2.left_trigger > 0.3) {//brake
+                    intakePressed = 0;
+                    intakeServoR.setPower(0);
+                    intakeServoL.setPower(0);
+                }
+            } else if (gamepad2.right_trigger > 0.3) { //intake
+                intakePressed = 1;
                 intakeServoR.setPower(1.0);
                 intakeServoL.setPower(-1.0);
-            } else if (gamepad2.left_trigger > 0.3) {
+            } else if (gamepad2.left_trigger > 0.3) { //outtake
+                intakePressed = 2;
                 intakeServoR.setPower(-1.0);
                 intakeServoL.setPower(1.0);
+            }
+
+            /*
+                        if (gamepad2.right_bumper) {
+                if (intakedirection == 1) {
+                    intakedirection = 0;
+                } else {
+                    intakedirection = 1;
+                }
+            } else if (gamepad2.left_bumper) {
+                if (intakedirection == -1) {
+                    intakedirection = 0;
+                } else {
+                    intakedirection = -1;
+                }
+            }
+
+            if (intakedirection == 1){
+                intakeServoR.setPower(-1.0);
+                intakeServoL.setPower(1.0);
+            } else if (intakedirection == -1){
+                intakeServoR.setPower(1.0);
+                intakeServoL.setPower(-1.0);
             } else {
                 intakeServoR.setPower(0);
                 intakeServoL.setPower(0);
+                if (!((intakedirection == 0)||(intakedirection == -1)||(intakedirection == 1))) {
+                    intakedirection = 0;
+                }
             }
+             */
 
             /***************** 6. MiSUMi Slides *****************/
-            if (gamepad2.right_bumper) {
-                slideExtendR = 1;
-                slideExtendL = 0;
-                extendServoR.setPosition(slideExtendR);
-                extendServoL.setPosition(slideExtendL);
+            slideExtendR = extendServoR.getPosition();
+            slideExtendL = extendServoL.getPosition();
+            if (gamepad2.right_bumper) { // Misumi slide down
+                if (slideExtendR <= 1) {
+                    slideExtendR = slideExtendR + 0.05;
+                    slideExtendL = slideExtendL - 0.05;
+                    extendServoR.setPosition(slideExtendR);
+                    extendServoL.setPosition(slideExtendL);
+                }
             }
-
             if (gamepad2.left_bumper) {
-                slideExtendR = 0;
-                slideExtendL = 1;
-                extendServoR.setPosition(slideExtendR);
-                extendServoL.setPosition(slideExtendL);
+                if (slideExtendR >= 0) { // Misumi slide up
+                    slideExtendR = slideExtendR - 0.05;
+                    slideExtendL = slideExtendL + 0.05;
+                    extendServoR.setPosition(slideExtendL);
+                    extendServoL.setPosition(slideExtendR);
+                }
             }
+            if (debug_mode) {
+                telemetry.addData("slideExtendL:", slideExtendL);
+                telemetry.addData("slideExtendR:", slideExtendR);
+            }
+            /*
+            /CY CHANGE--------------------------------Changed to variable speed + position, controls changed from bumper to trigger---------------------------------
+            if ((gamepad2.right_trigger > 0.1) && (slideExtend > 0)) {
+                slideExtend = slideExtend + 0.1 * gamepad2.right_trigger;
+                extendServoR.setPosition(slideExtend);
+                extendServoL.setPosition(-slideExtend);
+            } else if (gamepad2.left_trigger > 0.1 && (slideExtend < 1)) {
+                slideExtend = slideExtend - 0.1 * gamepad2.left_trigger;
+                extendServoR.setPosition(slideExtend);
+                extendServoL.setPosition(-slideExtend);
+            } else {
+                extendServoL.setPosition(slideExtend);
+                extendServoR.setPosition(-slideExtend);
+            }
+             */
 
             /***************** 7. Lead Screw *****************/
+            LSPositionR = LSMotorR.getCurrentPosition();
+            LSPositionL = LSMotorL.getCurrentPosition();
             if (gamepad1.right_bumper) {
                 LSMotorR.setPower(0.5);
                 LSMotorL.setPower(0.5);
@@ -257,7 +390,10 @@ public class MecanumTeleOp extends LinearOpMode {
                 LSMotorR.setPower(0);
                 LSMotorL.setPower(0);
             }
-
+            if (debug_mode) {
+                telemetry.addData("LSMotorR:", LSMotorR);
+                telemetry.addData("LSMotorL:", LSMotorL);
+            }
             /***************** Preset Buttons *****************/
             if (gamepad2.a){ // intake
                 armMotor.setTargetPosition(-500);
@@ -270,8 +406,6 @@ public class MecanumTeleOp extends LinearOpMode {
                 armMotor.setTargetPosition(-1100);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 armMotor.setPower(0.3);
-                extendServoR.setPosition(0);
-                extendServoL.setPosition(1);
             }
 
             if (gamepad2.b) { // outtake at high basket
