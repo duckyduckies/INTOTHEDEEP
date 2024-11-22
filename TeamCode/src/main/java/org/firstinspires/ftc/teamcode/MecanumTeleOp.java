@@ -330,14 +330,14 @@ public class MecanumTeleOp extends LinearOpMode {
             if ((gamepad2.right_trigger > 0.1) && (slideExtend > 0)) {
                 slideExtend = slideExtend + 0.1 * gamepad2.right_trigger;
                 extendServoR.setPosition(slideExtend);
-                extendServoL.setPosition(-slideExtend);
+                extendServoL.setPosition(-slideExtend + 1);
             } else if (gamepad2.left_trigger > 0.1 && (slideExtend < 1)) {
                 slideExtend = slideExtend - 0.1 * gamepad2.left_trigger;
                 extendServoR.setPosition(slideExtend);
-                extendServoL.setPosition(-slideExtend);
+                extendServoL.setPosition(-slideExtend + 1);
             } else {
                 extendServoL.setPosition(slideExtend);
-                extendServoR.setPosition(-slideExtend);
+                extendServoR.setPosition(-slideExtend + 1);
             }
              */
 
