@@ -63,9 +63,9 @@ public class Auto extends LinearOpMode {
             e.printStackTrace();
         }
 
-        y = -0;
+        y = 0;
         x = 0 * 1.1;
-        rx = -0.5;
+        rx = -0.3;
 
         frontLeftPower = ((y + x + rx));
         backLeftPower = ((y - x + rx));
@@ -81,7 +81,7 @@ public class Auto extends LinearOpMode {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        y = -0.5;
+        y = -0.1;
         x = 0 * 1.1;
         rx = 0;
 
@@ -116,7 +116,7 @@ public class Auto extends LinearOpMode {
         }
         y = -0;
         x = 0 * 1.1;
-        rx = -0.5;
+        rx = -0.3;
 
         frontLeftPower = ((y + x + rx));
         backLeftPower = ((y - x + rx));
@@ -132,7 +132,7 @@ public class Auto extends LinearOpMode {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        y = -1;
+        y = -0.1;
         x = 0 * 1.1;
         rx = 0;
 
