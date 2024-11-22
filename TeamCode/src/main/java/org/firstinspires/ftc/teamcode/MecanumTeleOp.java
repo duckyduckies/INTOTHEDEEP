@@ -312,17 +312,18 @@ public class MecanumTeleOp extends LinearOpMode {
             }
 
 //CY CHANGE--------------------------------Changed to variable speed + position, controls changed from bumper to trigger---------------------------------
-            if ((gamepad2.right_trigger > 0.1) && (slideExtend > 0)) {
+            if ((gamepad2.right_trigger > 0.1) && (slideExtend < 1)) {
                 slideExtend = slideExtend + 0.1 * gamepad2.right_trigger;
+                if (slideExtend > 1)
+                    slideExtend = 1;
                 extendServoR.setPosition(slideExtend);
                 extendServoL.setPosition(-slideExtend + 1);
-            } else if (gamepad2.left_trigger > 0.1 && (slideExtend < 1)) {
+            } else if (gamepad2.left_trigger > 0.1 && (slideExtend > 0)) {
                 slideExtend = slideExtend - 0.1 * gamepad2.left_trigger;
+                if (slideExtend < 0)
+                    slideExtend = 0;
                 extendServoR.setPosition(slideExtend);
                 extendServoL.setPosition(-slideExtend + 1);
-            } else {
-                extendServoL.setPosition(slideExtend);
-                extendServoR.setPosition(-slideExtend + 1);
             }
             if (gamepad2.a){ // intake
                 armMotor.setTargetPosition(-500);
