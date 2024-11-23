@@ -6,13 +6,66 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 @Autonomous(name="RedAuto", group="Linear Opmode")
-public class Auto extends LinearOpMode {
-
+public class RedAuto extends LinearOpMode {
+    boolean debug_mode = true;
     private DcMotor frontLeftMotor = null;
     private DcMotor frontRightMotor = null;
     private DcMotor backLeftMotor = null;
     private DcMotor backRightMotor = null;
     private DcMotor armMotor = null;
+
+    public void move(double x, double y, double rx, double powerScale) {
+        double denominator,frontLeftPower,backLeftPower,frontRightPower,backRightPower;
+        double frontLeftPower_mod,backLeftPower_mod,frontRightPower_mod,backRightPower_mod;
+        // Denominator is the largest motor power (absolute value) or 1
+        // This ensures all the powers maintain the same ratio,
+        // but only if at least one is out of the range [-1, 1]
+        denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
+        frontLeftPower = (y + x + rx) / denominator;
+        backLeftPower = (y - x + rx) / denominator;
+        frontRightPower = (y - x - rx) / denominator;
+        backRightPower = (y + x - rx) / denominator;
+
+        // modify power by using DcMotorPowerModifierAdv()
+        int eqVer = 1;
+        frontLeftPower_mod = DcMotorPowerModifierAdv(frontLeftPower, eqVer);
+        backLeftPower_mod = DcMotorPowerModifierAdv(backLeftPower, eqVer);
+        frontRightPower_mod = DcMotorPowerModifierAdv(frontRightPower, eqVer);
+        backRightPower_mod = DcMotorPowerModifierAdv(backRightPower, eqVer);
+
+        frontLeftMotor.setPower(frontLeftPower_mod * powerScale);
+        backLeftMotor.setPower(backLeftPower_mod * powerScale);
+        frontRightMotor.setPower(frontRightPower_mod * powerScale);
+        backRightMotor.setPower(backRightPower_mod * powerScale);
+
+        if (debug_mode) {
+            telemetry.addData("frontLeftPower: ", frontLeftPower);
+            telemetry.addData("backLeftPower: ", backLeftPower);
+            telemetry.addData("frontRightPower: ", frontRightPower);
+            telemetry.addData("backRightPower: ", backRightPower);
+            telemetry.addData("frontLeftPower_mod: ", frontLeftPower_mod);
+            telemetry.addData("backLeftPower_mod: ", backLeftPower_mod);
+            telemetry.addData("frontRightPower_mod: ", frontRightPower_mod);
+            telemetry.addData("backRightPower_mod: ", backRightPower_mod);
+        }
+    }
+
+    private double DcMotorPowerModifier(double Power) {
+        return Math.pow(Math.tanh(Power) / Math.tanh(1), 3);
+    }
+
+    private double DcMotorPowerModifierAdv(double Power, int eqVer) {
+        if (eqVer == 1) {
+            return Math.pow(Math.tanh(Power) / Math.tanh(1), 3);
+        } else if (eqVer == 2) {
+            return Math.pow(Power, 3);
+        } else if (eqVer == 3) {
+            return Math.pow(Power, 5);
+        } else {
+            return Power;
+        }
+    }
+
     @Override
     public void runOpMode() {
         // Initialize the hardware variables
