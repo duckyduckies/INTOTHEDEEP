@@ -65,10 +65,10 @@ public class MecanumTeleOp extends LinearOpMode {
             frontRightPower_mod = DcMotorPowerModifierAdv(frontRightPower, eqVer);
             backRightPower_mod = DcMotorPowerModifierAdv(backRightPower, eqVer);
 
-            frontLeftMotor.setPower(frontLeftPower_mod);
-            backLeftMotor.setPower(backLeftPower_mod);
-            frontRightMotor.setPower(frontRightPower_mod);
-            backRightMotor.setPower(backRightPower_mod);
+            frontLeftMotor.setPower(frontLeftPower_mod * powerScale);
+            backLeftMotor.setPower(backLeftPower_mod * powerScale);
+            frontRightMotor.setPower(frontRightPower_mod * powerScale);
+            backRightMotor.setPower(backRightPower_mod * powerScale);
 
             if (debug_mode) {
                 telemetry.addData("frontLeftPower: ", frontLeftPower);
