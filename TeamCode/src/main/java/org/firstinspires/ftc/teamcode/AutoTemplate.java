@@ -195,3 +195,4 @@ public class AutoTemplate extends LinearOpMode {
     public void extendLeadScrew(double inputParameter1) {
         System.out.println("Method: extendLeadScrew()");
         System.out.println("Input parameter: inputParameter1 = " + inputParameter1);
+    }
