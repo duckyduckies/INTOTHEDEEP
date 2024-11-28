@@ -156,6 +156,7 @@ public class MecanumTeleOp extends LinearOpMode {
         DcMotor slideMotor = hardwareMap.dcMotor.get("SlideMotor");
         slideMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         int slidePosition = 0;
+        slideMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         /***************** 3. Arm *****************/
         DcMotor armMotor = hardwareMap.dcMotor.get("ArmMotor");
         armMotor.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -242,11 +243,19 @@ public class MecanumTeleOp extends LinearOpMode {
             /***************** 2. Viper Slides *****************/
             slidePosition = slideMotor.getCurrentPosition();
             if (gamepad2.left_stick_y < 0) {
-                slideMotor.setPower(-gamepad2.left_stick_y);
+                //slideMotor.setPower(-gamepad2.left_stick_y);
+                slidePosition = slidePosition + 100; // arm goes up
+                slideMotor.setTargetPosition(slidePosition);
+                slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                slideMotor.setPower(0.3);
             } else if (gamepad2.left_stick_y > 0) {
-                slideMotor.setPower(-gamepad2.left_stick_y);
+               //slideMotor.setPower(-gamepad2.left_stick_y);
+                slidePosition = slidePosition - 100; // arm goes up
+                slideMotor.setTargetPosition(slidePosition);
+                slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                slideMotor.setPower(-0.3);
             } else {
-                slideMotor.setPower(0);
+                //slideMotor.setPower(0);
             }
             if (gamepad1.y) {
                 slideMotor.setTargetPosition(500);

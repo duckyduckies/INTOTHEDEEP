@@ -37,7 +37,7 @@ public class AutoTemplate extends LinearOpMode {
     public void runOpMode() {
 
         // Initialize the drive system variables.
-        leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
+        leftDrive = hardwareMap.get(DcMotor.class, "left_drive");
         rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
 
         // Configure the drive system variables.
@@ -56,13 +56,10 @@ public class AutoTemplate extends LinearOpMode {
         moveForward(ACTION_2_INPUT_PARAMETER_1);
 
 
-
-
         // ****** Action [3] Method ******
         // Description: Turn 45 degrees counterclockwise (t3)
         // Input parameter: ACTION_3_INPUT_PARAMETER_1
         turn45DegreesCounterclockwise(ACTION_3_INPUT_PARAMETER_1);
-
 
 
         // ****** Action [4] Method ******
@@ -71,14 +68,10 @@ public class AutoTemplate extends LinearOpMode {
         extendViperSlides(ACTION_4_INPUT_PARAMETER_1);
 
 
-
-
         // ****** Action [5] Method ******
         // Description: Arm down wrist up (target 2/position 1)
         // Input parameter: ACTION_5_INPUT_PARAMETER_1
         armDownWristUp(ACTION_5_INPUT_PARAMETER_1);
-
-
 
 
         // ****** Action [6] Method ******
@@ -87,13 +80,10 @@ public class AutoTemplate extends LinearOpMode {
         outTakeSample(ACTION_6_INPUT_PARAMETER_1);
 
 
-
         // ****** Action [7] Method ******
         // Description: Turn 45 degrees clockwise (t5)
         // Input parameter: ACTION_7_INPUT_PARAMETER_1
         turn45DegreesClockwise(ACTION_7_INPUT_PARAMETER_1);
-
-
 
 
         // ****** Action [8] Method ******
@@ -102,14 +92,10 @@ public class AutoTemplate extends LinearOpMode {
         moveRight(ACTION_8_INPUT_PARAMETER_1);
 
 
-
-
         // ****** Action [9] Method ******
         // Description:  Move backward 2 normal steps (t7)
         // Input parameter: ACTION_9_INPUT_PARAMETER_1
         moveBackward(ACTION_9_INPUT_PARAMETER_1);
-
-
 
 
         // ****** Action [10] Method ******
@@ -134,7 +120,7 @@ public class AutoTemplate extends LinearOpMode {
     public void turn45DegreesCounterclockwise(double inputParameter1) {
         System.out.println("Method: turn45DegreesCounterclockwise()");
         System.out.println("Input parameter: inputParameter1 = " + inputParameter1);
-}
+    }
 
 
     public void extendViperSlides(double inputParameter1) {
@@ -155,14 +141,14 @@ public class AutoTemplate extends LinearOpMode {
         System.out.println("Method: outTakeSample()");
         System.out.println("Input parameter: inputParameter1 = " + inputParameter1);
 
-        }
+    }
 
 
-        public void turn45DegreesClockwise(double inputParameter1) {
-            System.out.println("Method: turn45DegreesClockwise()");
-            System.out.println("Input parameter: inputParameter1 = " + inputParameter1);
+    public void turn45DegreesClockwise(double inputParameter1) {
+        System.out.println("Method: turn45DegreesClockwise()");
+        System.out.println("Input parameter: inputParameter1 = " + inputParameter1);
 
-        }
+    }
 
 
     public void moveBackward(double inputParameter1) {
@@ -172,7 +158,8 @@ public class AutoTemplate extends LinearOpMode {
     }
 
 
-
     public void extendLeadScrew(double inputParameter1) {
         System.out.println("Method: extendLeadScrew()");
         System.out.println("Input parameter: inputParameter1 = " + inputParameter1);
+    }
+}
