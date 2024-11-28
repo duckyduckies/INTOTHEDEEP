@@ -88,18 +88,7 @@ public class RedAuto extends LinearOpMode {
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
-        double y = -0;
-        double x = 0.3 * 1.1;
-        double rx = 0;
-
-        frontLeftPower = ((y + x + rx));
-        backLeftPower = ((y - x + rx));
-        frontRightPower = ((y - x - rx));
-        backRightPower = ((y + x - rx));
-        frontLeftMotor.setPower(frontLeftPower);
-        backLeftMotor.setPower(backLeftPower);
-        frontRightMotor.setPower(frontRightPower);
-        backRightMotor.setPower(backRightPower);
+        move(0.3 * 1.1, -0, 0, 1);
 
         try {
             Thread.sleep(700); // Sleep for 1 second (1000 milliseconds)
@@ -115,38 +104,13 @@ public class RedAuto extends LinearOpMode {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-        y = 0;
-        x = 0 * 1.1;
-        rx = -0.3;
-
-        frontLeftPower = ((y + x + rx));
-        backLeftPower = ((y - x + rx));
-        frontRightPower = ((y - x - rx));
-        backRightPower = ((y + x - rx));
-        frontLeftMotor.setPower(frontLeftPower);
-        backLeftMotor.setPower(backLeftPower);
-        frontRightMotor.setPower(frontRightPower);
-        backRightMotor.setPower(backRightPower);
-
+        move(0 * 1.1, 0, -0.3, 1);
         try {
             Thread.sleep(500); // Sleep for 1 second (1000 milliseconds)
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        y = -0.1;
-        x = 0 * 1.1;
-        rx = 0;
-
-        frontLeftPower = ((y + x + rx));
-        backLeftPower = ((y - x + rx));
-        frontRightPower = ((y - x - rx));
-        backRightPower = ((y + x - rx));
-        frontLeftMotor.setPower(frontLeftPower);
-        backLeftMotor.setPower(backLeftPower);
-        frontRightMotor.setPower(frontRightPower);
-        backRightMotor.setPower(backRightPower);
-
+        move(0.3 * 1.1, -0.1, 0, 1);
         try {
             Thread.sleep(500); // Sleep for 0.5 second (500 milliseconds)
         } catch (InterruptedException e) {
@@ -167,36 +131,13 @@ public class RedAuto extends LinearOpMode {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        y = -0;
-        x = 0 * 1.1;
-        rx = -0.3;
-
-        frontLeftPower = ((y + x + rx));
-        backLeftPower = ((y - x + rx));
-        frontRightPower = ((y - x - rx));
-        backRightPower = ((y + x - rx));
-        frontLeftMotor.setPower(frontLeftPower);
-        backLeftMotor.setPower(backLeftPower);
-        frontRightMotor.setPower(frontRightPower);
-        backRightMotor.setPower(backRightPower);
-
+        move(0 * 1.1, -0, -0.3, 1);
         try {
             Thread.sleep(500); // Sleep for 1 second (1000 milliseconds)
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        y = -0.1;
-        x = 0 * 1.1;
-        rx = 0;
-
-        frontLeftPower = ((y + x + rx));
-        backLeftPower = ((y - x + rx));
-        frontRightPower = ((y - x - rx));
-        backRightPower = ((y + x - rx));
-        frontLeftMotor.setPower(frontLeftPower);
-        backLeftMotor.setPower(backLeftPower);
-        frontRightMotor.setPower(frontRightPower);
-        backRightMotor.setPower(backRightPower);
+        move(0 * 1.1, -0.1, -0, 1);
 
         try {
             Thread.sleep(500); // Sleep for 0.5 second (500 milliseconds)
