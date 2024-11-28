@@ -21,8 +21,8 @@ public class AutoTemplate extends LinearOpMode {
     /* Declare OpMode CONSTANTs. */
 
     /*
-    * Please name each constant by the actual action
-    * because it's very possible that we will insert or delete actions
+     * Please name each constant by the actual action
+     * because it's very possible that we will insert or delete actions
      */
     static final double ACTION_1_INPUT_PARAMETER_1 = 1.0;
     static final double ACTION_2_INPUT_PARAMETER_1 = 1.0;
@@ -41,7 +41,7 @@ public class AutoTemplate extends LinearOpMode {
     public void runOpMode() {
 
         // Initialize the drive system variables.
-        leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
+        leftDrive = hardwareMap.get(DcMotor.class, "left_drive");
         rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
 
         // Configure the drive system variables.
@@ -55,16 +55,16 @@ public class AutoTemplate extends LinearOpMode {
         /*
          * Rachel: I prefer using the existing move function and input the direction & moving amounts
          *          And maybe another hold function and input the time
-        */
+         */
 
         // ****** Action [2] Method ******
         // Description: Move forward 2 normal steps (t2)
         // Input parameter: ACTION_2_INPUT_PARAMETER_1
         moveForward(ACTION_2_INPUT_PARAMETER_1);
         /*
-        * Rachel: I prefer using the existing move function and input the direction & moving amounts
-        *           And maybe another hold function and input the time
-        */
+         * Rachel: I prefer using the existing move function and input the direction & moving amounts
+         *           And maybe another hold function and input the time
+         */
 
 
         // ****** Action [3] Method ******
@@ -98,7 +98,6 @@ public class AutoTemplate extends LinearOpMode {
         outTakeSample(ACTION_6_INPUT_PARAMETER_1);
 
 
-
         // ****** Action [7] Method ******
         // Description: Turn 45 degrees clockwise (t5)
         // Input parameter: ACTION_7_INPUT_PARAMETER_1
@@ -116,7 +115,6 @@ public class AutoTemplate extends LinearOpMode {
          * Rachel: I prefer using the existing move function and input the direction & moving amounts
          *           And maybe another hold function and input the time
          */
-
 
 
         // ****** Action [9] Method ******
@@ -153,7 +151,7 @@ public class AutoTemplate extends LinearOpMode {
     public void turn45DegreesCounterclockwise(double inputParameter1) {
         System.out.println("Method: turn45DegreesCounterclockwise()");
         System.out.println("Input parameter: inputParameter1 = " + inputParameter1);
-}
+    }
 
 
     public void extendViperSlides(double inputParameter1) {
@@ -174,14 +172,14 @@ public class AutoTemplate extends LinearOpMode {
         System.out.println("Method: outTakeSample()");
         System.out.println("Input parameter: inputParameter1 = " + inputParameter1);
 
-        }
+    }
 
 
-        public void turn45DegreesClockwise(double inputParameter1) {
-            System.out.println("Method: turn45DegreesClockwise()");
-            System.out.println("Input parameter: inputParameter1 = " + inputParameter1);
+    public void turn45DegreesClockwise(double inputParameter1) {
+        System.out.println("Method: turn45DegreesClockwise()");
+        System.out.println("Input parameter: inputParameter1 = " + inputParameter1);
 
-        }
+    }
 
 
     public void moveBackward(double inputParameter1) {
@@ -191,8 +189,8 @@ public class AutoTemplate extends LinearOpMode {
     }
 
 
-
     public void extendLeadScrew(double inputParameter1) {
         System.out.println("Method: extendLeadScrew()");
         System.out.println("Input parameter: inputParameter1 = " + inputParameter1);
     }
+}
