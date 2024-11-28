@@ -4,9 +4,10 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name="RedAuto", group="Linear Opmode")
-public class RedAuto extends LinearOpMode {
+@Autonomous(name="AutoObservationZone", group="Linear Opmode")
+public class AutoObservationZone extends LinearOpMode {
     boolean debug_mode = true;
     private DcMotor frontLeftMotor = null;
     private DcMotor frontRightMotor = null;
@@ -14,7 +15,10 @@ public class RedAuto extends LinearOpMode {
     private DcMotor backRightMotor = null;
     private DcMotor armMotor = null;
 
+    private ElapsedTime runtime = new ElapsedTime();
+
     public void move(double x, double y, double rx, double powerScale) {
+        x = x * 1.1;
         double denominator,frontLeftPower,backLeftPower,frontRightPower,backRightPower;
         double frontLeftPower_mod,backLeftPower_mod,frontRightPower_mod,backRightPower_mod;
         // Denominator is the largest motor power (absolute value) or 1
@@ -88,13 +92,36 @@ public class RedAuto extends LinearOpMode {
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
-        move(0.3 * 1.1, -0, 0, 1);
+        // ****** Action [1] ******
 
+        // Rachel: If following FTC sample code RobotAutoDriveByTime
+        move(0.3, -0, 0, 1);
+        runtime.reset();
+        while (opModeIsActive() && (runtime.milliseconds() < 700)) {
+            telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.milliseconds());
+            telemetry.update();
+        }
+
+        /*
+        move(0.3 * 1.1, -0, 0, 1);
         try {
             Thread.sleep(700); // Sleep for 1 second (1000 milliseconds)
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        */
+
+        // ****** Action [2] ******
+
+        // Rachel: If following FTC sample code RobotAutoDriveByTime
+        move(0, 0, 0, 1);
+        runtime.reset();
+        while (opModeIsActive() && (runtime.milliseconds() < 200)) {
+            telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.milliseconds());
+            telemetry.update();
+        }
+
+        /*
         frontLeftMotor.setPower(0);
         backLeftMotor.setPower(0);
         frontRightMotor.setPower(0);
@@ -104,12 +131,15 @@ public class RedAuto extends LinearOpMode {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        */
+
         move(0 * 1.1, 0, -0.3, 1);
         try {
             Thread.sleep(500); // Sleep for 1 second (1000 milliseconds)
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
         move(0.3 * 1.1, -0.1, 0, 1);
         try {
             Thread.sleep(500); // Sleep for 0.5 second (500 milliseconds)
