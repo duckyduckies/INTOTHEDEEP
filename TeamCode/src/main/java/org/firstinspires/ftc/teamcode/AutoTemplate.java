@@ -20,6 +20,10 @@ public class AutoTemplate extends LinearOpMode {
 
     /* Declare OpMode CONSTANTs. */
 
+    /*
+    * Please name each constant by the actual action
+    * because it's very possible that we will insert or delete actions
+     */
     static final double ACTION_1_INPUT_PARAMETER_1 = 1.0;
     static final double ACTION_2_INPUT_PARAMETER_1 = 1.0;
     static final double ACTION_3_INPUT_PARAMETER_1 = 1.0;
@@ -48,37 +52,44 @@ public class AutoTemplate extends LinearOpMode {
         // Description: Move to the right with 1 small step (t1)
         // Input parameter: ACTION_1_INPUT_PARAMETER_1
         moveRight(ACTION_1_INPUT_PARAMETER_1);
-
+        /*
+         * Rachel: I prefer using the existing move function and input the direction & moving amounts
+         *          And maybe another hold function and input the time
+        */
 
         // ****** Action [2] Method ******
         // Description: Move forward 2 normal steps (t2)
         // Input parameter: ACTION_2_INPUT_PARAMETER_1
         moveForward(ACTION_2_INPUT_PARAMETER_1);
-
-
+        /*
+        * Rachel: I prefer using the existing move function and input the direction & moving amounts
+        *           And maybe another hold function and input the time
+        */
 
 
         // ****** Action [3] Method ******
         // Description: Turn 45 degrees counterclockwise (t3)
         // Input parameter: ACTION_3_INPUT_PARAMETER_1
         turn45DegreesCounterclockwise(ACTION_3_INPUT_PARAMETER_1);
+        /*
+         * Rachel: I prefer a general rotate function and input an angle
+         */
 
 
-
+        /*
+         * Rachel: Action 4 & 5 will be combined into the one "out take preset" function
+         *          which will be shared with TeleOp
+         */
         // ****** Action [4] Method ******
         // Description: Extend viper slides (target 1)
         // Input parameter: ACTION_4_INPUT_PARAMETER_1
         extendViperSlides(ACTION_4_INPUT_PARAMETER_1);
 
 
-
-
         // ****** Action [5] Method ******
         // Description: Arm down wrist up (target 2/position 1)
         // Input parameter: ACTION_5_INPUT_PARAMETER_1
         armDownWristUp(ACTION_5_INPUT_PARAMETER_1);
-
-
 
 
         // ****** Action [6] Method ******
@@ -92,15 +103,19 @@ public class AutoTemplate extends LinearOpMode {
         // Description: Turn 45 degrees clockwise (t5)
         // Input parameter: ACTION_7_INPUT_PARAMETER_1
         turn45DegreesClockwise(ACTION_7_INPUT_PARAMETER_1);
-
-
+        /*
+         * Rachel: I prefer a general rotate function and input an angle
+         */
 
 
         // ****** Action [8] Method ******
         // Description: Move to the right 3 normal steps (t6)
         // Input parameter: ACTION_8_INPUT_PARAMETER_1
         moveRight(ACTION_8_INPUT_PARAMETER_1);
-
+        /*
+         * Rachel: I prefer using the existing move function and input the direction & moving amounts
+         *           And maybe another hold function and input the time
+         */
 
 
 
@@ -108,15 +123,19 @@ public class AutoTemplate extends LinearOpMode {
         // Description:  Move backward 2 normal steps (t7)
         // Input parameter: ACTION_9_INPUT_PARAMETER_1
         moveBackward(ACTION_9_INPUT_PARAMETER_1);
-
-
+        /*
+         * Rachel: I prefer using the existing move function and input the direction & moving amounts
+         *           And maybe another hold function and input the time
+         */
 
 
         // ****** Action [10] Method ******
         // Description: Extend lead screw to touch ascent 1 (target 3)
         // Input parameter: ACTION_10_INPUT_PARAMETER_1
         extendLeadScrew(ACTION_10_INPUT_PARAMETER_1);
-
+        /*
+         * Rachel: This can be named as ascend 1 preset and be shared with TeleOp
+         */
     }
 
     public void moveRight(double inputParameter1) {
