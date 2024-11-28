@@ -23,10 +23,10 @@ public class MecanumTeleOp extends LinearOpMode {
     private ElapsedTime runtime = new ElapsedTime();
     // Declare our motors
     // Make sure your ID's match your configuration
-    DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeftMotor");
-    DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeftMotor");
-    DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRightMotor");
-    DcMotor backRightMotor = hardwareMap.dcMotor.get("backRightMotor");
+    DcMotor frontLeftMotor;
+    DcMotor backLeftMotor;
+    DcMotor frontRightMotor;
+    DcMotor backRightMotor;
     boolean debug_mode = true;
 
     private class DriveThread extends Thread
@@ -59,7 +59,7 @@ public class MecanumTeleOp extends LinearOpMode {
             backRightPower = (y + x - rx) / denominator;
 
             // modify power by using DcMotorPowerModifierAdv()
-            int eqVer = 1;
+            int eqVer = 0;
             frontLeftPower_mod = DcMotorPowerModifierAdv(frontLeftPower, eqVer);
             backLeftPower_mod = DcMotorPowerModifierAdv(backLeftPower, eqVer);
             frontRightPower_mod = DcMotorPowerModifierAdv(frontRightPower, eqVer);
@@ -70,7 +70,7 @@ public class MecanumTeleOp extends LinearOpMode {
             frontRightMotor.setPower(frontRightPower_mod * powerScale);
             backRightMotor.setPower(backRightPower_mod * powerScale);
 
-            if (debug_mode) {
+            /*if (debug_mode) {
                 telemetry.addData("frontLeftPower: ", frontLeftPower);
                 telemetry.addData("backLeftPower: ", backLeftPower);
                 telemetry.addData("frontRightPower: ", frontRightPower);
@@ -80,6 +80,7 @@ public class MecanumTeleOp extends LinearOpMode {
                 telemetry.addData("frontRightPower_mod: ", frontRightPower_mod);
                 telemetry.addData("backRightPower_mod: ", backRightPower_mod);
             }
+            */
         }
 
         // called when tread.start is called. thread stays in loop to do what it does until exit is
@@ -93,8 +94,8 @@ public class MecanumTeleOp extends LinearOpMode {
                 while (opModeIsActive() && !isInterrupted())
                 {
                     /***************** 1. Mecanum Drivetrain *****************/
-                    y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
-                    x = gamepad1.left_stick_x; // Counteract imperfect strafing
+                    y = gamepad1.left_stick_x; // Remember, Y stick value is reversed
+                    x = -gamepad1.left_stick_y; // Counteract imperfect strafing
                     rx = gamepad1.right_stick_x;
 
                     move(y,x,rx,1);
@@ -134,6 +135,10 @@ public class MecanumTeleOp extends LinearOpMode {
         // If your robot moves backwards when commanded to go forwards,
         // reverse the left side instead.
         // See the note about this earlier on this page.
+        frontLeftMotor = hardwareMap.dcMotor.get("frontLeftMotor");
+        backLeftMotor = hardwareMap.dcMotor.get("backLeftMotor");
+        frontRightMotor = hardwareMap.dcMotor.get("frontRightMotor");
+        backRightMotor = hardwareMap.dcMotor.get("backRightMotor");
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         frontLeftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -143,14 +148,17 @@ public class MecanumTeleOp extends LinearOpMode {
 
         /***************** 2. Viper Slides *****************/
         DcMotor slideMotor = hardwareMap.dcMotor.get("SlideMotor");
-        slideMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        slideMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        slideMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         int slidePosition = 0;
         /***************** 3. Arm *****************/
         DcMotor armMotor = hardwareMap.dcMotor.get("ArmMotor");
         armMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         int armPosition = 0;
-
+        armMotor.setTargetPosition(armPosition);
+        armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        armMotor.setPower(0.5);
         /***************** 4. Wrist *****************/
         double wristPosition = 1; // default position is down
         Servo wristServo = hardwareMap.servo.get("WristServo");
@@ -176,7 +184,7 @@ public class MecanumTeleOp extends LinearOpMode {
         extendServoL.setPosition(0);
         //double slideExtendR = 1;
         //double slideExtendL = 0;
-        double slideExtend = 0;
+        double slideExtend = 1;
 
         /***************** 7. Lead Screw *****************/
         DcMotor LSMotorR = hardwareMap.dcMotor.get("LSMotorR");
@@ -229,39 +237,53 @@ public class MecanumTeleOp extends LinearOpMode {
             /***************** 2. Viper Slides *****************/
             slidePosition = slideMotor.getCurrentPosition();
             if (gamepad2.left_stick_y < 0) {
-                slideMotor.setPower(-gamepad2.left_stick_y);
-            } else if (gamepad2.left_stick_y > 0) {
-                slideMotor.setPower(-gamepad2.left_stick_y);
-            } else {
+                //slideMotor.setPower(-gamepad2.left_stick_y);
+                slidePosition = slidePosition + 150; // arm goes up
+                slideMotor.setTargetPosition(slidePosition);
+                slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                slideMotor.setPower(1);
+            } else if (gamepad2.left_stick_y > 0 && slidePosition > 0) {
+                //slideMotor.setPower(-gamepad2.left_stick_y);
+                slidePosition = slidePosition - 150;
+                slideMotor.setTargetPosition(slidePosition);
+                slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                slideMotor.setPower(1);
+            } /* else {
                 slideMotor.setPower(0);
-            }
+            } */
             if (gamepad1.y) {
                 slideMotor.setTargetPosition(500);
                 slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                slideMotor.setPower(0.2);
+                slideMotor.setPower(0.3);
 
                 runtime.reset();
                 while (opModeIsActive() && (runtime.seconds() < 3) && slideMotor.isBusy()) {
                 }
             }
+            if (debug_mode) {
+                telemetry.addData("slidePosition: ", slidePosition);
+            }
             /***************** 3. Arm *****************/
             //armMotor.setPower(-gamepad2.right_stick_y/4);
             armPosition=armMotor.getCurrentPosition();
-            if (debug_mode) {
-                telemetry.addData("armPosition:", armPosition);
-            }
-            if (gamepad2.right_stick_y < 0) { // joystick above the origin
-                armPosition = armPosition + 100; // arm goes up
+            if (gamepad2.right_stick_y < 0 && armPosition < 1103) { // joystick above the origin
+                armPosition = armPosition + 50; // arm goes up
+                if (slidePosition <= 2000) {
+                    armPosition = 0;
+                }
                 armMotor.setTargetPosition(armPosition);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                armMotor.setPower(0.5);
+                armMotor.setPower(0.3);
             } else if (gamepad2.right_stick_y > 0) { // joystick below the origin
                 armPosition = armPosition - 100;
                 armMotor.setTargetPosition(armPosition);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                armMotor.setPower(-0.5);
+                armMotor.setPower(-0.3);
             } else {
                 //armMotor.setPower(0); // RUN_WITHOUT_ENCODER mode
+            }
+            if (debug_mode) {
+                telemetry.addData("armPosition:", armPosition);
             }
             if (gamepad1.x) {
                 armMotor.setTargetPosition(-500);
@@ -372,17 +394,16 @@ public class MecanumTeleOp extends LinearOpMode {
 
             //CY CHANGE--------------------------------Changed to variable speed + position, controls changed from bumper to trigger---------------------------------
             slideExtend = extendServoR.getPosition();
-            if ((gamepad2.right_trigger > 0.1) && (slideExtend < 1)) {
+            if ((gamepad2.right_trigger > 0.1) && (slideExtend < 1) && (armPosition < 0)) {
                 slideExtend = slideExtend + 0.1 * gamepad2.right_trigger;
+                if (slideExtend>1) slideExtend=1;
                 extendServoR.setPosition(slideExtend);
                 extendServoL.setPosition(-slideExtend + 1);
             } else if (gamepad2.left_trigger > 0.1 && (slideExtend > 0)) {
                 slideExtend = slideExtend - 0.1 * gamepad2.left_trigger;
+                if (slideExtend<0) slideExtend=0;
                 extendServoR.setPosition(slideExtend);
                 extendServoL.setPosition(-slideExtend + 1);
-            } else {
-                extendServoL.setPosition(slideExtend);
-                extendServoR.setPosition(-slideExtend + 1);
             }
             if (debug_mode) {
                 telemetry.addData("slideExtendR:", slideExtend);
@@ -393,10 +414,10 @@ public class MecanumTeleOp extends LinearOpMode {
             /***************** 7. Lead Screw *****************/
             LSPositionR = LSMotorR.getCurrentPosition();
             LSPositionL = LSMotorL.getCurrentPosition();
-            if (gamepad1.right_bumper) {
+            if (gamepad1.right_bumper && (LSPositionR < 5700 || LSPositionL < 5700)) {
                 LSMotorR.setPower(1);
                 LSMotorL.setPower(1);
-            } else if (gamepad1.left_bumper) {
+            } else if (gamepad1.left_bumper && (LSPositionR > 0 || LSPositionL > 0)) {
                 LSMotorR.setPower(-1);
                 LSMotorL.setPower(-1);
             } else {
@@ -408,22 +429,27 @@ public class MecanumTeleOp extends LinearOpMode {
                 telemetry.addData("LSPositionL:", LSPositionL);
             }
             /***************** Preset Buttons *****************/
-            if (gamepad2.a){ // intake
-                armMotor.setTargetPosition(-500);
-                armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                armMotor.setPower(0.3);
-
-                wristPosition=(0.4);
+            if (gamepad2.a){ // intake position
+                wristPosition=(0.55);
                 wristServo.setPosition(wristPosition);
-
-                armMotor.setTargetPosition(-1100);
+                armMotor.setTargetPosition(-720);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 armMotor.setPower(0.3);
             }
 
             if (gamepad2.b) { // outtake at high basket
-                extendServoR.setPosition(0);
-                extendServoL.setPosition(1);
+                wristPosition=(0);
+                wristServo.setPosition(wristPosition);
+                armMotor.setTargetPosition(1103);
+                armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                armMotor.setPower(0.3);
+                extendServoR.setPosition(0.45);
+                extendServoL.setPosition(0.55);
+                slideMotor.setTargetPosition(2000);
+                slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                slideMotor.setPower(0.3);
+                //extendServoR.setPosition(0);
+                //extendServoL.setPosition(1);
                 // still missing arm
                 /*
                 slideMotor.setTargetPosition(0);
@@ -434,7 +460,7 @@ public class MecanumTeleOp extends LinearOpMode {
                 while (opModeIsActive() && (runtime.seconds() < 3) && slideMotor.isBusy()) {
                 }
                 */
-                wristServo.setPosition(0);
+                //wristServo.setPosition(0);
             }
 
             telemetry.update();
