@@ -160,7 +160,7 @@ public class MecanumTeleOp extends LinearOpMode {
         int armPosition = 0;
         armMotor.setTargetPosition(armPosition);
         armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        armMotor.setPower(0.5);
+        armMotor.setPower(0.3);
         /***************** 4. Wrist *****************/
         double wristPosition = 1; // default position is down
         Servo wristServo = hardwareMap.servo.get("WristServo");
@@ -182,8 +182,8 @@ public class MecanumTeleOp extends LinearOpMode {
         /***************** 6. MiSUMi Slides *****************/
         Servo extendServoR = hardwareMap.servo.get("ExtendServoR");
         Servo extendServoL = hardwareMap.servo.get("ExtendServoL");
-        extendServoR.setPosition(1);
-        extendServoL.setPosition(0);
+        extendServoR.setPosition(0);
+        extendServoL.setPosition(1);
         //double slideExtendR = 1;
         //double slideExtendL = 0;
         double slideExtend = 1;
@@ -273,14 +273,16 @@ public class MecanumTeleOp extends LinearOpMode {
             armPosition=armMotor.getCurrentPosition();
             if (gamepad2.right_stick_y < 0 && armPosition < 1103) { // joystick above the origin
                 armPosition = armPosition + 50; // arm goes up
+                /*
                 if (slidePosition <= 2000) {
                     armPosition = 0;
                 }
+                 */
                 armMotor.setTargetPosition(armPosition);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 armMotor.setPower(0.3);
             } else if (gamepad2.right_stick_y > 0) { // joystick below the origin
-                armPosition = armPosition - 100;
+                armPosition = armPosition - 50;
                 armMotor.setTargetPosition(armPosition);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 armMotor.setPower(-0.3);
@@ -293,7 +295,7 @@ public class MecanumTeleOp extends LinearOpMode {
             if (gamepad1.x) {
                 armMotor.setTargetPosition(-500);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                armMotor.setPower(0.5);
+                armMotor.setPower(0.3);
             }
             /***************** 4. Wrist *****************/
             if (gamepad2.dpad_down) { // wrist down
@@ -399,7 +401,7 @@ public class MecanumTeleOp extends LinearOpMode {
 
             //CY CHANGE--------------------------------Changed to variable speed + position, controls changed from bumper to trigger---------------------------------
             slideExtend = extendServoR.getPosition();
-            if ((gamepad2.right_trigger > 0.1) && (slideExtend < 1) && (armPosition < 0)) {
+            if ((gamepad2.right_trigger > 0.1) && (slideExtend < 1)) {  // (armPosition < 0)
                 slideExtend = slideExtend + 0.1 * gamepad2.right_trigger;
                 if (slideExtend>1) slideExtend=1;
                 extendServoR.setPosition(slideExtend);
@@ -428,6 +430,13 @@ public class MecanumTeleOp extends LinearOpMode {
             } else {
                 LSMotorR.setPower(0);
                 LSMotorL.setPower(0);
+            if (gamepad1.right_trigger > 0.25) {
+                LSMotorR.setTargetPosition(5700);
+                LSMotorL.setTargetPosition(5700);
+            }
+            if (gamepad1.left_trigger > 0.25) {
+                LSMotorR.setTargetPosition(0);
+                LSMotorL.setTargetPosition(0);
             }
             if (debug_mode) {
                 telemetry.addData("LSPositionR:", LSPositionR);
