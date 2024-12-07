@@ -237,7 +237,7 @@ public class MecanumTeleOp extends LinearOpMode {
             //moved to move function
 
             /***************** 2. Viper Slides *****************/
-            /*
+
             slidePosition = slideMotor.getCurrentPosition();
             if (gamepad2.left_stick_y < 0) {
                 //slideMotor.setPower(-gamepad2.left_stick_y);
@@ -251,9 +251,10 @@ public class MecanumTeleOp extends LinearOpMode {
                 slideMotor.setTargetPosition(slidePosition);
                 slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 slideMotor.setPower(1);
-            } /* else {
-                slideMotor.setPower(0);
+            }  else {
+                //slideMotor.setPower(0);
             }
+            /*
             if (gamepad1.y) {
                 slideMotor.setTargetPosition(500);
                 slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -416,6 +417,8 @@ public class MecanumTeleOp extends LinearOpMode {
                 telemetry.addData("slideExtendR:", slideExtend);
                 telemetry.addData("slideExtendL:", 1-slideExtend);
             }
+
+            // this is a test comment
 
 
             /***************** 7. Lead Screw *****************/
