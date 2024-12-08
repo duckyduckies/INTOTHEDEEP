@@ -370,6 +370,7 @@ public class MecanumTeleOp extends LinearOpMode {
                 armMotor.setTargetPosition(armPosition);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 armMotor.setPower(ARM_POWER_TO_TARGET);
+
             } else if (gamepad2.right_stick_y > 0 && armPosition >= ARM_LOWER_LIMIT) { // joystick below the origin; arm puts down
                 if (armPosition<=ARM_WRIST_RETRACT_THRESHOLD_U && armPosition>=ARM_WRIST_RETRACT_THRESHOLD_L){
                     wristServo.setPosition(0.52);
@@ -383,6 +384,11 @@ public class MecanumTeleOp extends LinearOpMode {
             //}
             if (debug_mode) {
                 telemetry.addData("armPosition:", armPosition);
+            }
+            if (armPosition > 500) {
+                armPosition = 500;
+                armMotor.setTargetPosition(armPosition);
+                armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             }
             /*
             // Test Arm
