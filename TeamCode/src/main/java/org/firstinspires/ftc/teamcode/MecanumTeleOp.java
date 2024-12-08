@@ -31,7 +31,7 @@ public class MecanumTeleOp extends LinearOpMode {
     private final static double VIPER_SLIDES_POWER = 0.3;
     private final static double VIPER_SLIDES_POWER_TO_TARGET = 1;
     private final static double VIPER_SLIDES_POWER_PRESET = 1;
-    private final static double VIPER_SLIDES_POWER_PRESET_DOWN = 0.3;
+    private final static double VIPER_SLIDES_POWER_PRESET_DOWN = 0.6;
     private final static int VIPER_SLIDES_INITIAL_POSITION = 0;
     private final static int VIPER_SLIDES_STEP = 150;
     private final static int VIPER_SLIDES_UPPER_LIMIT = 15000;
@@ -46,10 +46,10 @@ public class MecanumTeleOp extends LinearOpMode {
     private final static int ARM_INITIAL_POSITION = 0;
     private final static int ARM_STEP = 25;
     private final static int ARM_UPPER_LIMIT = 500;
-    private final static int ARM_LOWER_LIMIT = -1100;
+    private final static int ARM_LOWER_LIMIT = -1300;
     private final static int ARM_UPRIGHT_POSITION = 400;
-    private final static int ARM_MISUMi_RETRACT_THRESHOLD_U = -750;
-    private final static int ARM_MISUMi_RETRACT_THRESHOLD_L = -950;
+    private final static int ARM_MISUMI_RETRACT_THRESHOLD_U = -750;
+    private final static int ARM_MISUMI_RETRACT_THRESHOLD_L = -950;
     private final static int ARM_WRIST_RETRACT_THRESHOLD_U = -500;
     private final static int ARM_WRIST_RETRACT_THRESHOLD_L = -750;
 
@@ -353,7 +353,7 @@ public class MecanumTeleOp extends LinearOpMode {
             armPosition=armMotor.getCurrentPosition();
             if (gamepad2.right_stick_y < 0 && armPosition <= ARM_UPPER_LIMIT) { // joystick above the origin; arm raises up
                 // retracts misumi slides when the arm rotates up and leaves the floor (at -1100 )
-                if (armPosition<=ARM_MISUMi_RETRACT_THRESHOLD_U && armPosition>=ARM_MISUMi_RETRACT_THRESHOLD_L){
+                if (armPosition<=ARM_MISUMI_RETRACT_THRESHOLD_U && armPosition>=ARM_MISUMI_RETRACT_THRESHOLD_L){
                     extendServoR.setPosition(MISUMI_INITIAL_POSITION_R);
                     extendServoL.setPosition(MISUMI_INITIAL_POSITION_L);
                 }
