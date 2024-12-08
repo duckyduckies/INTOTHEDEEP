@@ -549,7 +549,7 @@ private final static double DPAD_SIDEWAY_POWER_RATIO = 0.8;
            }
              */
             if (gamepad1.back) {
-                if (LSState == 0) {
+                if (LSState == 0) {//above low rung
                     LSMotorR.setTargetPosition(LS_ABOVE_LOWER_RUNG);
                     LSMotorL.setTargetPosition(LS_ABOVE_LOWER_RUNG);
                     LSMotorR.setPower(LEAD_SCREW_POWER_PRESET);
@@ -557,7 +557,7 @@ private final static double DPAD_SIDEWAY_POWER_RATIO = 0.8;
                     LSMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     LSMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     LSState = 1;
-                } else if (LSState == 1) {
+                } else if (LSState == 1) {//on low rung
                     LSMotorR.setTargetPosition(LS_LOWER_RUNG);
                     LSMotorL.setTargetPosition(LS_LOWER_RUNG);
                     LSMotorR.setPower(LEAD_SCREW_POWER_PRESET);
@@ -565,7 +565,7 @@ private final static double DPAD_SIDEWAY_POWER_RATIO = 0.8;
                     LSMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     LSMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     LSState = 2;
-                } else if (LSState == 2) {
+                } else if (LSState == 2) {//default position
                     LSMotorR.setTargetPosition(LEAD_SCREW_OFF_THRESHOLD);
                     LSMotorL.setTargetPosition(LEAD_SCREW_OFF_THRESHOLD);
                     LSMotorR.setPower(LEAD_SCREW_POWER_PRESET);
