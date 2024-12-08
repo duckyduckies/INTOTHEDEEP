@@ -414,36 +414,43 @@ public class MecanumTeleOp extends LinearOpMode {
             // 1: Intake
             // 2: Outake
             if (intakePressed == 1) { //intaking
-                if (gamepad2.right_bumper) { //brake
+                if (gamepad2.dpad_right) { //brake
                     intakePressed = 0;
                     intakeServoR.setPower(0);
                     intakeServoL.setPower(0);
+                    idle();
                 }
-                else if (gamepad2.left_bumper){ //outtake
+                else if (gamepad2.dpad_left){ //outtake
                     intakePressed = 2;
                     intakeServoR.setPower(CLOCKWISE_POWER);
                     intakeServoL.setPower(COUNTER_CLOCKWISE_POWER);
+                    idle();
                 }
             } else if (intakePressed == 2) { //outtaking
-                if (gamepad2.left_bumper) {//brake
+                if (gamepad2.dpad_left) {//brake
                     intakePressed = 0;
                     intakeServoR.setPower(0);
                     intakeServoL.setPower(0);
+                    idle();
                 }
-                else if (gamepad2.right_bumper) { //intake
+                else if (gamepad2.dpad_right) { //intake
                     intakePressed = 1;
                     intakeServoR.setPower(COUNTER_CLOCKWISE_POWER);
                     intakeServoL.setPower(CLOCKWISE_POWER);
+                    idle();
                 }
-            } else if (gamepad2.right_bumper) { //braking & intake
+            } else if (gamepad2.dpad_right) { //braking & intake
                 intakePressed = 1;
                 intakeServoR.setPower(COUNTER_CLOCKWISE_POWER);
                 intakeServoL.setPower(CLOCKWISE_POWER);
-            } else if (gamepad2.left_bumper) { //braking & outtake
+                idle();
+            } else if (gamepad2.dpad_left) { //braking & outtake
                 intakePressed = 2;
                 intakeServoR.setPower(CLOCKWISE_POWER);
                 intakeServoL.setPower(COUNTER_CLOCKWISE_POWER);
+                idle();
             }
+            telemetry.addData("Intake Status=",intakePressed);
 
             /*
             if (gamepad2.right_bumper) {
