@@ -109,6 +109,8 @@ public class Auto extends LinearOpMode {
             e.printStackTrace();
         }
         //Insert arm code here
+
+
         try {
             Thread.sleep(200); // Sleep for 0.2 second (200 milliseconds)
         } catch (InterruptedException e) {
