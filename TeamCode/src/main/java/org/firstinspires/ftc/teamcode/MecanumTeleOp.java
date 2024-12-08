@@ -44,7 +44,7 @@ public class MecanumTeleOp extends LinearOpMode {
     private final static double ARM_POWER_TO_TARGET = 0.5;
     private final static double ARM_POWER_PRESET = 0.5;
     private final static int ARM_INITIAL_POSITION = 0;
-    private final static int ARM_STEP = 25;
+    private final static int ARM_STEP = 100;
     private final static int ARM_UPPER_LIMIT = 500;
     private final static int ARM_LOWER_LIMIT = -1300;
     private final static int ARM_UPRIGHT_POSITION = 400;
@@ -356,6 +356,8 @@ public class MecanumTeleOp extends LinearOpMode {
                 if (armPosition<=ARM_MISUMI_RETRACT_THRESHOLD_U && armPosition>=ARM_MISUMI_RETRACT_THRESHOLD_L){
                     extendServoR.setPosition(MISUMI_INITIAL_POSITION_R);
                     extendServoL.setPosition(MISUMI_INITIAL_POSITION_L);
+                    intakeServoR.setPower(0);
+                    intakeServoL.setPower(0);
                 }
                 if (armPosition<=ARM_WRIST_RETRACT_THRESHOLD_U && armPosition>=ARM_WRIST_RETRACT_THRESHOLD_L){
                     wristServo.setPosition(WRIST_DOWN);
