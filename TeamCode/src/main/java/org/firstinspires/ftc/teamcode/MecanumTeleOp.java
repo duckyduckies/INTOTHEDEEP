@@ -24,8 +24,8 @@ public class MecanumTeleOp extends LinearOpMode {
     /***************** 1. Mecanum Drivetrain *****************/
 
     private final static int DRIVETRAIN_POWER_MODIFIER_EQ_VER = 0;
-    private final static double DPAD_FORWARD_BACKWARD_POWER_RATIO = 0.5;
-    private final static double DPAD_SIDEWAY_POWER_RATIO = 0.7;
+    private final static double DPAD_FORWARD_BACKWARD_POWER_RATIO = 0.4;
+    private final static double DPAD_SIDEWAY_POWER_RATIO = 0.8;
 
     /***************** 2. Viper Slides *****************/ //28 inch,
     private final static double VIPER_SLIDES_POWER = 0.75;
@@ -44,7 +44,7 @@ public class MecanumTeleOp extends LinearOpMode {
     private final static double ARM_POWER_TO_TARGET = 0.5;
     private final static double ARM_POWER_PRESET = 0.5;
     private final static int ARM_INITIAL_POSITION = 0;
-    private final static int ARM_STEP = 200;
+    private final static int ARM_STEP = 100;
     private final static int ARM_UPPER_LIMIT = 500;
     private final static int ARM_LOWER_LIMIT = -1300;
     private final static int ARM_UPRIGHT_POSITION = 250;
@@ -75,7 +75,6 @@ public class MecanumTeleOp extends LinearOpMode {
 
     /***************** 7. Lead Screw *****************/
     private final static double LEAD_SCREW_POWER = 0.7;
-    private final static double LEAD_SCREW_POWER_TO_TARGET = 1;
     private final static double LEAD_SCREW_POWER_PRESET = 1;
     private final static int LEAD_SCREW_INITIAL_POSITION = 0;
     //private final static int LEAD_SCREW_STEP = 150;
@@ -619,7 +618,7 @@ public class MecanumTeleOp extends LinearOpMode {
                 slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 slideMotor.setPower(VIPER_SLIDES_POWER_PRESET);
             }
-            // Moving Position
+            // Drivetrain Moving Position
             else if (/*gamepad1.ps && */gamepad2.ps&&(armPosition >= VIPER_SLIDES_OFF_THRESHOLD + 50)) {
                 slideMotor.setTargetPosition(VIPER_SLIDES_OFF_THRESHOLD);
                 slideMotor.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
@@ -639,6 +638,7 @@ public class MecanumTeleOp extends LinearOpMode {
 
                 wristServo.setPosition(WRIST_DOWN);
             }
+            /*
             if ((gamepad2.ps)&&(!gamepad1.ps)&&(armPosition <= VIPER_SLIDES_OFF_THRESHOLD + 50)){
 
                 armMotor.setTargetPosition(ARM_UPRIGHT_POSITION);
@@ -655,8 +655,10 @@ public class MecanumTeleOp extends LinearOpMode {
                 intakeServoR.setPower(0);
                 intakeServoL.setPower(0);
             }
+             */
 
             /*
+            // Speciman Preset
             if (gamepad2.y) {
                 slideMotor.setTargetPosition(2000);
                 slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
