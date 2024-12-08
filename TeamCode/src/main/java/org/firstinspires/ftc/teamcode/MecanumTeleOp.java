@@ -28,30 +28,30 @@ public class MecanumTeleOp extends LinearOpMode {
     private final static double DPAD_SIDEWAY_POWER_RATIO = 0.7;
 
     /***************** 2. Viper Slides *****************/ //28 inch,
-    private final static double VIPER_SLIDES_POWER = 0.3;
+    private final static double VIPER_SLIDES_POWER = 0.75;
     private final static double VIPER_SLIDES_POWER_TO_TARGET = 1;
     private final static double VIPER_SLIDES_POWER_PRESET = 1;
     private final static double VIPER_SLIDES_POWER_PRESET_DOWN = 0.6;
     private final static int VIPER_SLIDES_INITIAL_POSITION = 0;
-    private final static int VIPER_SLIDES_STEP = 150;
+    private final static int VIPER_SLIDES_STEP = 200;
     private final static int VIPER_SLIDES_UPPER_LIMIT = 15000;
     private final static int VIPER_SLIDES_LOWER_LIMIT = 0;
     private final static int VIPER_SLIDES_OFF_THRESHOLD = 150;
     
     /***************** 3. Arm *****************/
 
-    private final static double ARM_POWER = 0.3;
+    private final static double ARM_POWER = 0.5;
     private final static double ARM_POWER_TO_TARGET = 0.5;
     private final static double ARM_POWER_PRESET = 0.5;
     private final static int ARM_INITIAL_POSITION = 0;
-    private final static int ARM_STEP = 100;
+    private final static int ARM_STEP = 200;
     private final static int ARM_UPPER_LIMIT = 500;
     private final static int ARM_LOWER_LIMIT = -1300;
-    private final static int ARM_UPRIGHT_POSITION = 400;
+    private final static int ARM_UPRIGHT_POSITION = 250;
     private final static int ARM_MISUMI_RETRACT_THRESHOLD_U = -750;
     private final static int ARM_MISUMI_RETRACT_THRESHOLD_L = -950;
-    private final static int ARM_WRIST_RETRACT_THRESHOLD_U = -500;
-    private final static int ARM_WRIST_RETRACT_THRESHOLD_L = -750;
+    private final static int ARM_WRIST_RETRACT_THRESHOLD_U = -300;
+    private final static int ARM_WRIST_RETRACT_THRESHOLD_L = 750;
 
 
     /***************** 4. Wrist *****************/
@@ -608,6 +608,8 @@ public class MecanumTeleOp extends LinearOpMode {
             }
             else if (gamepad2.x) { // outtake at low basket
                 wristServo.setPosition(0.34);
+                intakeServoR.setPower(0);
+                intakeServoL.setPower(0);
                 armMotor.setTargetPosition(ARM_UPPER_LIMIT);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 armMotor.setPower(ARM_POWER_TO_TARGET);
@@ -618,7 +620,7 @@ public class MecanumTeleOp extends LinearOpMode {
                 slideMotor.setPower(VIPER_SLIDES_POWER_PRESET);
             }
             // Moving Position
-            else if (gamepad1.ps && gamepad2.ps) {
+            else if (/*gamepad1.ps && */gamepad2.ps&&(armPosition >= VIPER_SLIDES_OFF_THRESHOLD + 50)) {
                 slideMotor.setTargetPosition(VIPER_SLIDES_OFF_THRESHOLD);
                 slideMotor.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
                 slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -637,6 +639,23 @@ public class MecanumTeleOp extends LinearOpMode {
 
                 wristServo.setPosition(WRIST_DOWN);
             }
+            if ((gamepad2.ps)&&(!gamepad1.ps)&&(armPosition <= VIPER_SLIDES_OFF_THRESHOLD + 50)){
+
+                armMotor.setTargetPosition(ARM_UPRIGHT_POSITION);
+                armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                armMotor.setPower(ARM_POWER_TO_TARGET);
+
+                extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
+                extendServoL.setPosition(-MISUMI_RETRACT_LIMIT_R+1);
+
+                wristServo.setPosition(WRIST_DOWN);
+
+                //brake
+                intakePressed = 0;
+                intakeServoR.setPower(0);
+                intakeServoL.setPower(0);
+            }
+
             /*
             if (gamepad2.y) {
                 slideMotor.setTargetPosition(2000);
