@@ -25,7 +25,7 @@ public class MecanumTeleOp extends LinearOpMode {
     private final static int ARM_INITIAL_POSITION = 0;
     private final static int ARM_STEP = 25;
     private final static int ARM_UPPER_LIMIT = 1100;
-    private final static int ARM_LOWER_LIMIT = -1100;
+    private final static int ARM_LOWER_LIMIT = -1150;
 
     private ElapsedTime runtime = new ElapsedTime();
     // Declare our motors
@@ -189,11 +189,11 @@ public class MecanumTeleOp extends LinearOpMode {
         /***************** 6. MiSUMi Slides *****************/
         Servo extendServoR = hardwareMap.servo.get("ExtendServoR");
         Servo extendServoL = hardwareMap.servo.get("ExtendServoL");
-        extendServoR.setPosition(1);
-        extendServoL.setPosition(0);
+        extendServoR.setPosition(0);
+        extendServoL.setPosition(1);
         //double slideExtendR = 1;
         //double slideExtendL = 0;
-        double slideExtend = 1;
+        double slideExtend = 0;
 
         /***************** 7. Lead Screw *****************/
         DcMotor LSMotorR = hardwareMap.dcMotor.get("LSMotorR");
@@ -274,16 +274,22 @@ public class MecanumTeleOp extends LinearOpMode {
                 while (opModeIsActive() && (runtime.seconds() < 3) && slideMotor.isBusy()) {
                 }
             }
+
+
+            */
             if (debug_mode) {
                 telemetry.addData("slidePosition: ", slidePosition);
             }
-
-            */
             /***************** 3. Arm *****************/
             //armMotor.setPower(-gamepad2.right_stick_y/4);
             armPosition=armMotor.getCurrentPosition();
-            if (gamepad2.right_stick_y < 0 && armPosition < ARM_UPPER_LIMIT) { // joystick above the origin
-                armPosition = armPosition + ARM_STEP; // arm goes up
+            if (gamepad2.right_stick_y < 0 && armPosition <= ARM_UPPER_LIMIT) { // joystick above the origin; arm raises up
+                // retracts misumi slides when the arm rotates up and leaves the floor (at -1100 )
+                if (armPosition>=-1000){
+                    extendServoR.setPosition(0);
+                    extendServoL.setPosition(1);
+                }
+                armPosition = armPosition + ARM_STEP; // arm goes up by one step
                 /*
                 if (slidePosition <= 2000) {
                     armPosition = 0;
@@ -292,8 +298,8 @@ public class MecanumTeleOp extends LinearOpMode {
                 armMotor.setTargetPosition(armPosition);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 armMotor.setPower(ARM_POWER_TO_TARGET);
-            } else if (gamepad2.right_stick_y > 0 && armPosition > ARM_LOWER_LIMIT) { // joystick below the origin
-                armPosition = armPosition - ARM_STEP;
+            } else if (gamepad2.right_stick_y > 0 && armPosition >= ARM_LOWER_LIMIT) { // joystick below the origin; arm puts down
+                armPosition = armPosition - ARM_STEP; // arm goes down by one step
                 armMotor.setTargetPosition(armPosition);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 armMotor.setPower(ARM_POWER_TO_TARGET);
@@ -312,8 +318,8 @@ public class MecanumTeleOp extends LinearOpMode {
                 armMotor.setTargetPosition(500);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 armMotor.setPower(ARM_POWER_TO_TARGET);
-                extendServoR.setPosition(1);
-                extendServoL.setPosition(0);
+                extendServoR.setPosition(0);
+                extendServoL.setPosition(1);
                 wristServo.setPosition(0);
             }
             /***************** 4. Wrist *****************/
