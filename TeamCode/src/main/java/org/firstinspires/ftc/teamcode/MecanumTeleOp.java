@@ -25,7 +25,7 @@ public class MecanumTeleOp extends LinearOpMode {
 
     private final static int DRIVETRAIN_POWER_MODIFIER_EQ_VER = 0;
     private final static double DPAD_FORWARD_BACKWARD_POWER_RATIO = 0.4;
-    private final static double DPAD_SIDEWAY_POWER_RATIO = 0.8;
+private final static double DPAD_SIDEWAY_POWER_RATIO = 0.8;
 
     /***************** 2. Viper Slides *****************/ //28 inch,
     private final static double VIPER_SLIDES_POWER = 0.75;
@@ -47,11 +47,11 @@ public class MecanumTeleOp extends LinearOpMode {
     private final static int ARM_STEP = 100;
     private final static int ARM_UPPER_LIMIT = 500;
     private final static int ARM_LOWER_LIMIT = -1300;
-    private final static int ARM_UPRIGHT_POSITION = 250;
+    private final static int ARM_UPRIGHT_POSITION = 200;
     private final static int ARM_MISUMI_RETRACT_THRESHOLD_U = -750;
     private final static int ARM_MISUMI_RETRACT_THRESHOLD_L = -950;
-    private final static int ARM_WRIST_RETRACT_THRESHOLD_U = -300;
-    private final static int ARM_WRIST_RETRACT_THRESHOLD_L = 750;
+    private final static int ARM_WRIST_RETRACT_THRESHOLD_U = -550;
+    private final static int ARM_WRIST_RETRACT_THRESHOLD_L = -750;
 
 
     /***************** 4. Wrist *****************/
@@ -281,7 +281,7 @@ public class MecanumTeleOp extends LinearOpMode {
             NormalizedRGBA colors = colorSensor.getNormalizedColors();
             Color.colorToHSV(colors.toColor(), hsvValues);
 
-            if (((DistanceSensor) colorSensor).getDistance(DistanceUnit.CM) < 2) {
+            if (((DistanceSensor) colorSensor).getDistance(DistanceUnit.CM) <= 2.5) {
                 telemetry.addData("sample detected", 0);
                 gamepad1.runRumbleEffect(rumbleEffect);
             }
@@ -358,12 +358,16 @@ public class MecanumTeleOp extends LinearOpMode {
                     intakeServoR.setPower(0);
                     intakeServoL.setPower(0);
                 }
-                if (armPosition<=ARM_WRIST_RETRACT_THRESHOLD_U && armPosition>=ARM_WRIST_RETRACT_THRESHOLD_L){
+                else if (armPosition<=ARM_WRIST_RETRACT_THRESHOLD_U && armPosition>=ARM_WRIST_RETRACT_THRESHOLD_L){
                     wristServo.setPosition(WRIST_DOWN);
 
                     intakeServoR.setPower(0);
                     intakeServoL.setPower(0);
                     intakePressed=0;
+                }
+                else if (armPosition<=ARM_UPRIGHT_POSITION+100 && armPosition>=ARM_UPRIGHT_POSITION-100) {
+                    extendServoR.setPosition(MISUMI_INITIAL_POSITION_R);
+                    extendServoL.setPosition(MISUMI_INITIAL_POSITION_L);
                 }
                 armPosition = armPosition + ARM_STEP; // arm goes up by one step
                 armMotor.setTargetPosition(armPosition);
@@ -372,7 +376,7 @@ public class MecanumTeleOp extends LinearOpMode {
 
             } else if (gamepad2.right_stick_y > 0 && armPosition >= ARM_LOWER_LIMIT) { // joystick below the origin; arm puts down
                 if (armPosition<=ARM_WRIST_RETRACT_THRESHOLD_U && armPosition>=ARM_WRIST_RETRACT_THRESHOLD_L){
-                    wristServo.setPosition(0.52);
+                    wristServo.setPosition(0.44);
                 }
                 armPosition = armPosition - ARM_STEP; // arm goes down by one step
                 armMotor.setTargetPosition(armPosition);
@@ -420,37 +424,37 @@ public class MecanumTeleOp extends LinearOpMode {
             // 1: Intake
             // 2: Outake
             if (intakePressed == 1) { //intaking
-                if (gamepad2.dpad_right) { //brake
+                if (gamepad2.right_bumper) { //brake
                     intakePressed = 0;
                     intakeServoR.setPower(0);
                     intakeServoL.setPower(0);
                     idle();
                 }
-                else if (gamepad2.dpad_left){ //outtake
+                else if (gamepad2.left_bumper){ //outtake
                     intakePressed = 2;
                     intakeServoR.setPower(CLOCKWISE_POWER);
                     intakeServoL.setPower(COUNTER_CLOCKWISE_POWER);
                     idle();
                 }
             } else if (intakePressed == 2) { //outtaking
-                if (gamepad2.dpad_left) {//brake
+                if (gamepad2.left_bumper) {//brake
                     intakePressed = 0;
                     intakeServoR.setPower(0);
                     intakeServoL.setPower(0);
                     idle();
                 }
-                else if (gamepad2.dpad_right) { //intake
+                else if (gamepad2.right_bumper) { //intake
                     intakePressed = 1;
                     intakeServoR.setPower(COUNTER_CLOCKWISE_POWER);
                     intakeServoL.setPower(CLOCKWISE_POWER);
                     idle();
                 }
-            } else if (gamepad2.dpad_right) { //braking & intake
+            } else if (gamepad2.right_bumper) { //braking & intake
                 intakePressed = 1;
                 intakeServoR.setPower(COUNTER_CLOCKWISE_POWER);
                 intakeServoL.setPower(CLOCKWISE_POWER);
                 idle();
-            } else if (gamepad2.dpad_left) { //braking & outtake
+            } else if (gamepad2.left_bumper) { //braking & outtake
                 intakePressed = 2;
                 intakeServoR.setPower(CLOCKWISE_POWER);
                 intakeServoL.setPower(COUNTER_CLOCKWISE_POWER);
@@ -512,7 +516,7 @@ public class MecanumTeleOp extends LinearOpMode {
 
             //CY CHANGE--------------------------------Changed to variable speed + position, controls changed from bumper to trigger---------------------------------
             slideExtendR = extendServoR.getPosition();
-            if ((gamepad2.right_trigger > TRIGGER_THRESHOLD) && (slideExtendR < MISUMI_EXTEND_LIMIT_R)) {  // (armPosition < 0)
+            if ((gamepad2.right_trigger > TRIGGER_THRESHOLD) && (slideExtendR < MISUMI_EXTEND_LIMIT_R) && (armPosition <= ARM_UPRIGHT_POSITION)) {  // (armPosition < 0)
                 slideExtendR = slideExtendR + MISUMI_STEP_RATIO_1 * (gamepad2.right_trigger*MISUMI_STEP_RATIO_2);
                 if (slideExtendR>MISUMI_EXTEND_LIMIT_R) slideExtendR=MISUMI_EXTEND_LIMIT_R;
                 extendServoR.setPosition(slideExtendR);
@@ -583,8 +587,8 @@ public class MecanumTeleOp extends LinearOpMode {
                 slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 slideMotor.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
 
-                wristServo.setPosition(0.52);
-                armMotor.setTargetPosition(ARM_LOWER_LIMIT);
+                wristServo.setPosition(0.44);
+                armMotor.setTargetPosition(ARM_LOWER_LIMIT+100);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 armMotor.setPower(ARM_POWER_PRESET);
                 extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
@@ -596,7 +600,7 @@ public class MecanumTeleOp extends LinearOpMode {
             }
             else if (gamepad2.b) { // outtake at high basket
                 wristServo.setPosition(0.34);
-                armMotor.setTargetPosition(ARM_UPPER_LIMIT);
+                armMotor.setTargetPosition(ARM_UPPER_LIMIT-50);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 armMotor.setPower(ARM_POWER_TO_TARGET);
                 extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
@@ -609,7 +613,7 @@ public class MecanumTeleOp extends LinearOpMode {
                 wristServo.setPosition(0.34);
                 intakeServoR.setPower(0);
                 intakeServoL.setPower(0);
-                armMotor.setTargetPosition(ARM_UPPER_LIMIT);
+                armMotor.setTargetPosition(ARM_UPPER_LIMIT-50);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 armMotor.setPower(ARM_POWER_TO_TARGET);
                 extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
@@ -619,7 +623,7 @@ public class MecanumTeleOp extends LinearOpMode {
                 slideMotor.setPower(VIPER_SLIDES_POWER_PRESET);
             }
             // Drivetrain Moving Position
-            else if (/*gamepad1.ps && */gamepad2.ps&&(armPosition >= VIPER_SLIDES_OFF_THRESHOLD + 50)) {
+            else if (/*gamepad1.ps && */gamepad2.ps) {
                 slideMotor.setTargetPosition(VIPER_SLIDES_OFF_THRESHOLD);
                 slideMotor.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
                 slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
