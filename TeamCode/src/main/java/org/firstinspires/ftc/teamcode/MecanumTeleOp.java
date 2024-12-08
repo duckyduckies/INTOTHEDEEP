@@ -386,8 +386,7 @@ public class MecanumTeleOp extends LinearOpMode {
                 telemetry.addData("armPosition:", armPosition);
             }
             if (armPosition > 500) {
-                armPosition = 500;
-                armMotor.setTargetPosition(armPosition);
+                armMotor.setTargetPosition(499);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             }
             /*
