@@ -359,6 +359,10 @@ public class MecanumTeleOp extends LinearOpMode {
                 }
                 if (armPosition<=ARM_WRIST_RETRACT_THRESHOLD_U && armPosition>=ARM_WRIST_RETRACT_THRESHOLD_L){
                     wristServo.setPosition(WRIST_DOWN);
+
+                    intakeServoR.setPower(0);
+                    intakeServoL.setPower(0);
+                    intakePressed=0;
                 }
                 armPosition = armPosition + ARM_STEP; // arm goes up by one step
                 armMotor.setTargetPosition(armPosition);
@@ -618,14 +622,6 @@ public class MecanumTeleOp extends LinearOpMode {
                 extendServoL.setPosition(-MISUMI_RETRACT_LIMIT_R+1);
 
                 wristServo.setPosition(WRIST_DOWN);
-
-                LSMotorR.setPower(0);
-                LSMotorL.setPower(0);
-                LSMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                LSMotorL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                slideMotor.setPower(0);
-                slideMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
             }
             /*
             if (gamepad2.y) {

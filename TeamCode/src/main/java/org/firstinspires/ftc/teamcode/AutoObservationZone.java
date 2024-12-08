@@ -133,12 +133,16 @@ public class AutoObservationZone extends LinearOpMode {
         }
         */
 
+        // ****** Action [2] ******
+
         move(0 * 1.1, 0, -0.3, 1);
         try {
             Thread.sleep(500); // Sleep for 1 second (1000 milliseconds)
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        // ****** Action [2] ******
 
         move(0.3 * 1.1, -0.1, 0, 1);
         try {
