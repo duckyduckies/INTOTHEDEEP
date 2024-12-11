@@ -66,8 +66,6 @@ public class MecanumTeleOp extends LinearOpMode {
     private final static double COUNTER_CLOCKWISE_POWER = 1.0;
 
     /***************** 6. MiSUMi Slides *****************/
-    private final static double MISUMI_INITIAL_POSITION_R = 0;
-    private final static double MISUMI_INITIAL_POSITION_L = 1;
     private final static double MISUMI_STEP_RATIO_1 = 0.1; // CY defines it
     private final static double MISUMI_EXTEND_LIMIT_R = 0.3;
     private final static double MISUMI_RETRACT_LIMIT_R = 0;
@@ -258,11 +256,9 @@ public class MecanumTeleOp extends LinearOpMode {
         /***************** 6. MiSUMi Slides *****************/
         Servo extendServoR = hardwareMap.servo.get("ExtendServoR");
         Servo extendServoL = hardwareMap.servo.get("ExtendServoL");
-        extendServoR.setPosition(0);
-        extendServoL.setPosition(1);
-        //double slideExtendR = 1;
-        //double slideExtendL = 0;
-        double slideExtendR = 0;
+        double slideExtendR = MISUMI_EXTEND_LIMIT_R;
+        extendServoR.setPosition(slideExtendR);
+        extendServoL.setPosition(-slideExtendR+1);
 
         /***************** 7. Lead Screw *****************/
         DcMotor LSMotorR = hardwareMap.dcMotor.get("LSMotorR");
@@ -402,8 +398,8 @@ public class MecanumTeleOp extends LinearOpMode {
             if (gamepad2.right_stick_y < 0 && armPosition <= ARM_INITIAL_POSITION) { // joystick above the origin; arm raises up
                 // retracts misumi slides when the arm rotates up and leaves the floor (at -1100 )
                 if (armPosition<=ARM_MISUMI_RETRACT_THRESHOLD_L+200 && armPosition>=ARM_MISUMI_RETRACT_THRESHOLD_L){
-                    extendServoR.setPosition(MISUMI_INITIAL_POSITION_R);
-                    extendServoL.setPosition(MISUMI_INITIAL_POSITION_L);
+                    extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
+                    extendServoL.setPosition(-MISUMI_RETRACT_LIMIT_R+1);
                     intakeServoR.setPower(0);
                     intakeServoL.setPower(0);
                 }
@@ -415,8 +411,8 @@ public class MecanumTeleOp extends LinearOpMode {
                     intakePressed=0;
                 }
                 else if (armPosition<=ARM_UPRIGHT_POSITION+100 && armPosition>=ARM_UPRIGHT_POSITION-100) {
-                    extendServoR.setPosition(MISUMI_INITIAL_POSITION_R);
-                    extendServoL.setPosition(MISUMI_INITIAL_POSITION_L);
+                    extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
+                    extendServoL.setPosition(-MISUMI_RETRACT_LIMIT_R+1);
                 }
                 armPosition = armPosition + ARM_STEP; // arm goes up by one step
                 armMotor.setTargetPosition(armPosition);
