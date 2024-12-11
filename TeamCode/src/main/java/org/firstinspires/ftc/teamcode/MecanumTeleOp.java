@@ -25,13 +25,13 @@ public class MecanumTeleOp extends LinearOpMode {
 
     private final static int DRIVETRAIN_POWER_MODIFIER_EQ_VER = 0;
     private final static double DPAD_FORWARD_BACKWARD_POWER_RATIO = 0.4;
-private final static double DPAD_SIDEWAY_POWER_RATIO = 0.8;
+    private final static double DPAD_SIDEWAY_POWER_RATIO = 0.8;
 
     /***************** 2. Viper Slides *****************/ //28 inch,
     private final static double VIPER_SLIDES_POWER = 0.75;
     private final static double VIPER_SLIDES_POWER_TO_TARGET = 1;
     private final static double VIPER_SLIDES_POWER_PRESET = 1;
-    private final static double VIPER_SLIDES_POWER_PRESET_DOWN = 0.6;
+    private final static double VIPER_SLIDES_POWER_PRESET_DOWN = 1;
     private final static int VIPER_SLIDES_INITIAL_POSITION = 0;
     private final static int VIPER_SLIDES_STEP = 200;
     private final static int VIPER_SLIDES_UPPER_LIMIT = 15000;
@@ -48,9 +48,7 @@ private final static double DPAD_SIDEWAY_POWER_RATIO = 0.8;
     private final static int ARM_UPPER_LIMIT = 500;
     private final static int ARM_LOWER_LIMIT = -1300;
     private final static int ARM_UPRIGHT_POSITION = 200;
-    private final static int ARM_MISUMI_RETRACT_THRESHOLD_U = -750;
     private final static int ARM_MISUMI_RETRACT_THRESHOLD_L = -950;
-    private final static int ARM_WRIST_RETRACT_THRESHOLD_U = -550;
     private final static int ARM_WRIST_RETRACT_THRESHOLD_L = -750;
 
 
@@ -84,7 +82,11 @@ private final static double DPAD_SIDEWAY_POWER_RATIO = 0.8;
     private final static int LS_ABOVE_LOWER_RUNG = 30000;
     private final static int LS_LOWER_RUNG = 8000;
     /***************** 8. Color Sensor *****************/
-    
+    /***************** Preset Buttons *****************/
+    private final static double INTAKE_PRESET_WRIST_POS = 0.52;
+    private final static int INTAKE_PRESET_ARM_POS = -1200;
+    private final static double OUTTAKE_PRESET_WRIST_POS = 0.34;
+    private final static int OUTTAKE_PRESET_ARM_POS = 450;
     private ElapsedTime runtime = new ElapsedTime();
     // Declare our motors
     // Make sure your ID's match your configuration
@@ -92,6 +94,7 @@ private final static double DPAD_SIDEWAY_POWER_RATIO = 0.8;
     DcMotor backLeftMotor;
     DcMotor frontRightMotor;
     DcMotor backRightMotor;
+
     boolean debug_mode = true;
 
     private class DriveThread extends Thread
@@ -352,13 +355,13 @@ private final static double DPAD_SIDEWAY_POWER_RATIO = 0.8;
             armPosition=armMotor.getCurrentPosition();
             if (gamepad2.right_stick_y < 0 && armPosition <= ARM_UPPER_LIMIT) { // joystick above the origin; arm raises up
                 // retracts misumi slides when the arm rotates up and leaves the floor (at -1100 )
-                if (armPosition<=ARM_MISUMI_RETRACT_THRESHOLD_U && armPosition>=ARM_MISUMI_RETRACT_THRESHOLD_L){
+                if (armPosition<=ARM_MISUMI_RETRACT_THRESHOLD_L+200 && armPosition>=ARM_MISUMI_RETRACT_THRESHOLD_L){
                     extendServoR.setPosition(MISUMI_INITIAL_POSITION_R);
                     extendServoL.setPosition(MISUMI_INITIAL_POSITION_L);
                     intakeServoR.setPower(0);
                     intakeServoL.setPower(0);
                 }
-                else if (armPosition<=ARM_WRIST_RETRACT_THRESHOLD_U && armPosition>=ARM_WRIST_RETRACT_THRESHOLD_L){
+                else if (armPosition<=ARM_WRIST_RETRACT_THRESHOLD_L+200 && armPosition>=ARM_WRIST_RETRACT_THRESHOLD_L){
                     wristServo.setPosition(WRIST_DOWN);
 
                     intakeServoR.setPower(0);
@@ -375,8 +378,8 @@ private final static double DPAD_SIDEWAY_POWER_RATIO = 0.8;
                 armMotor.setPower(ARM_POWER_TO_TARGET);
 
             } else if (gamepad2.right_stick_y > 0 && armPosition >= ARM_LOWER_LIMIT) { // joystick below the origin; arm puts down
-                if (armPosition<=ARM_WRIST_RETRACT_THRESHOLD_U && armPosition>=ARM_WRIST_RETRACT_THRESHOLD_L){
-                    wristServo.setPosition(0.44);
+                if (armPosition<=ARM_WRIST_RETRACT_THRESHOLD_L+200 && armPosition>=ARM_WRIST_RETRACT_THRESHOLD_L){
+                    wristServo.setPosition(INTAKE_PRESET_WRIST_POS);
                 }
                 armPosition = armPosition - ARM_STEP; // arm goes down by one step
                 armMotor.setTargetPosition(armPosition);
@@ -388,8 +391,8 @@ private final static double DPAD_SIDEWAY_POWER_RATIO = 0.8;
             if (debug_mode) {
                 telemetry.addData("armPosition:", armPosition);
             }
-            if (armPosition > 500) {
-                armMotor.setTargetPosition(499);
+            if (armPosition > ARM_UPPER_LIMIT) {
+                armMotor.setTargetPosition(ARM_UPPER_LIMIT);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             }
             /*
@@ -534,21 +537,22 @@ private final static double DPAD_SIDEWAY_POWER_RATIO = 0.8;
 
 
             /***************** 7. Lead Screw *****************/
-            /*
+
             LSPositionR = LSMotorR.getCurrentPosition();
             LSPositionL = LSMotorL.getCurrentPosition();
+/*
             if (gamepad1.right_bumper && (LSPositionR <= LEAD_SCREW_UPPER_LIMIT && LSPositionL <= LEAD_SCREW_UPPER_LIMIT)) {
                 LSMotorR.setPower(LEAD_SCREW_POWER);
-                LSMotorL.setPower(LEAD_SCREW_POWER);
-            } else if (gamepad1.left_bumper && (LSPositionR >= LEAD_SCREW_OFF_THRESHOLD && LSPositionL >= LEAD_SCREW_OFF_THRESHOLD)) {
+                //LSMotorL.setPower(LEAD_SCREW_POWER);
+            } else if (gamepad1.left_bumper) {// && (LSPositionR >= LEAD_SCREW_OFF_THRESHOLD && LSPositionL >= LEAD_SCREW_OFF_THRESHOLD)) {
                 LSMotorR.setPower(-LEAD_SCREW_POWER);
-                LSMotorL.setPower(-LEAD_SCREW_POWER);
+                //LSMotorL.setPower(-LEAD_SCREW_POWER);
             } else {
                 LSMotorR.setPower(0);
                 LSMotorL.setPower(0);
            }
-             */
-            if (gamepad1.back) {
+*/
+            if (gamepad1.ps) {
                 if (LSState == 0) {//above low rung
                     LSMotorR.setTargetPosition(LS_ABOVE_LOWER_RUNG);
                     LSMotorL.setTargetPosition(LS_ABOVE_LOWER_RUNG);
@@ -595,8 +599,8 @@ private final static double DPAD_SIDEWAY_POWER_RATIO = 0.8;
                 slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 slideMotor.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
 
-                wristServo.setPosition(0.44);
-                armMotor.setTargetPosition(ARM_LOWER_LIMIT+100);
+                wristServo.setPosition(INTAKE_PRESET_WRIST_POS);
+                armMotor.setTargetPosition(INTAKE_PRESET_ARM_POS);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 armMotor.setPower(ARM_POWER_PRESET);
                 extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
@@ -606,9 +610,9 @@ private final static double DPAD_SIDEWAY_POWER_RATIO = 0.8;
                 intakeServoL.setPower(CLOCKWISE_POWER);
                 intakePressed = 1; // intake
             }
-            else if (gamepad2.b) { // outtake at high basket
-                wristServo.setPosition(0.34);
-                armMotor.setTargetPosition(ARM_UPPER_LIMIT-50);
+            if (gamepad2.b) { // outtake at high basket
+                wristServo.setPosition(OUTTAKE_PRESET_WRIST_POS);
+                armMotor.setTargetPosition(OUTTAKE_PRESET_ARM_POS);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 armMotor.setPower(ARM_POWER_TO_TARGET);
                 extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
@@ -617,11 +621,11 @@ private final static double DPAD_SIDEWAY_POWER_RATIO = 0.8;
                 slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 slideMotor.setPower(VIPER_SLIDES_POWER_PRESET);
             }
-            else if (gamepad2.x) { // outtake at low basket
-                wristServo.setPosition(0.34);
+            if (gamepad2.x) { // outtake at low basket
+                wristServo.setPosition(OUTTAKE_PRESET_WRIST_POS);
                 intakeServoR.setPower(0);
                 intakeServoL.setPower(0);
-                armMotor.setTargetPosition(ARM_UPPER_LIMIT-50);
+                armMotor.setTargetPosition(OUTTAKE_PRESET_ARM_POS);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 armMotor.setPower(ARM_POWER_TO_TARGET);
                 extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
@@ -631,7 +635,7 @@ private final static double DPAD_SIDEWAY_POWER_RATIO = 0.8;
                 slideMotor.setPower(VIPER_SLIDES_POWER_PRESET);
             }
             // Drivetrain Moving Position
-            else if (/*gamepad1.ps && */gamepad2.ps) {
+            if (/*gamepad1.ps && */gamepad2.ps) {
                 slideMotor.setTargetPosition(VIPER_SLIDES_OFF_THRESHOLD);
                 slideMotor.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
                 slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
