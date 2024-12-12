@@ -247,16 +247,14 @@ public class MecanumTeleOp extends LinearOpMode {
         intakeServoL.setPower(0);
 
         // Intake state:
-        // 0: Not rotating
-        // 1: Intake
-        // 2: Outake
+        // 0: NotOutake
         int intakePressed = CLAW_INITIAL_STATE;
         //int intakedirection = 0;
 
         /***************** 6. MiSUMi Slides *****************/
         Servo extendServoR = hardwareMap.servo.get("ExtendServoR");
         Servo extendServoL = hardwareMap.servo.get("ExtendServoL");
-        double slideExtendR = MISUMI_EXTEND_LIMIT_R;
+        double slideExtendR = MISUMI_RETRACT_LIMIT_R;
         extendServoR.setPosition(slideExtendR);
         extendServoL.setPosition(-slideExtendR+1);
 
@@ -395,7 +393,7 @@ public class MecanumTeleOp extends LinearOpMode {
             /***************** 3. Arm *****************/
             //armMotor.setPower(-gamepad2.right_stick_y/4);
             armPosition=armMotor.getCurrentPosition();
-            if (gamepad2.right_stick_y < 0 && armPosition <= ARM_INITIAL_POSITION) { // joystick above the origin; arm raises up
+            if (gamepad2.right_stick_y < 0) {// && armPosition <= ARM_INITIAL_POSITION) { // joystick above the origin; arm raises up
                 // retracts misumi slides when the arm rotates up and leaves the floor (at -1100 )
                 if (armPosition<=ARM_MISUMI_RETRACT_THRESHOLD_L+200 && armPosition>=ARM_MISUMI_RETRACT_THRESHOLD_L){
                     extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
@@ -697,6 +695,22 @@ public class MecanumTeleOp extends LinearOpMode {
                 extendServoL.setPosition(-MISUMI_RETRACT_LIMIT_R+1);
 
                 wristServo.setPosition(WRIST_DOWN);
+            }
+            if (gamepad2.dpad_left) {
+                extendServoR.setPosition(0.3);
+                extendServoL.setPosition(0.7);
+                slideMotor.setTargetPosition(1900);
+                slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                slideMotor.setPower(VIPER_SLIDES_POWER_PRESET);
+                runtime.reset();
+                while (opModeIsActive() && (runtime.milliseconds() < 1000)) { //1 second
+                    telemetry.addData("Outtake Preset", "Viper 1: %4.1f S Elapsed", runtime.milliseconds());
+                    telemetry.update();
+                }
+                wristServo.setPosition(0.4);
+                armMotor.setTargetPosition(250);
+                armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                armMotor.setPower(ARM_POWER_TO_TARGET);
             }
             /*
             if ((gamepad2.ps)&&(!gamepad1.ps)&&(armPosition <= VIPER_SLIDES_OFF_THRESHOLD + 50)){
