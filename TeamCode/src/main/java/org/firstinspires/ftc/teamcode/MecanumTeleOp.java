@@ -276,9 +276,10 @@ public class MecanumTeleOp extends LinearOpMode {
         ColorSensor colorSensor = hardwareMap.get(ColorSensor.class, "ColorSensor");
 
         // the previous and current state of the button.
-        boolean back2PrevState = false;
-        boolean back2CurrState = false;
-
+        boolean back2PrevState = true;
+        boolean back2CurrState = true;
+        boolean back1PrevState = false;
+        boolean back1CurrState = false;
         if (isStopRequested()) return;
 //OP MODE CODE-------------------------------------------------------------------------
         while (opModeIsActive()) {
@@ -287,29 +288,32 @@ public class MecanumTeleOp extends LinearOpMode {
             // check the status of the back button on gamepad2.
             back2CurrState = gamepad2.back;
             // check for button state transitions.
-            if (back2CurrState && (back2CurrState != back2PrevState))  {
+            if (back2CurrState && !back2PrevState)  {
                 // button is transitioning to a pressed state. So Toggle debug mode
                 debugMode = !debugMode;
-                if (debugMode) {
-                    telemetry.addData("Debug Mode enabled",0);
-                    telemetry.addData("(╯°□°)╯︵ ┻━┻",0);
-                }
             }
             // update previous state variable.
             back2PrevState = back2CurrState;
+            if (debugMode) {
+                telemetry.addData("Debug Mode enabled",0);
+                telemetry.addData("(╯°□°)╯︵ ┻━┻",0);
+            }
 
-            if (gamepad1.back){
+            back1CurrState = gamepad1.back;
+            if (back1CurrState && !back1PrevState) {
                 leadScrewDebug = !leadScrewDebug;
                 if (leadScrewDebug) {
                     LSMotorR.setPower(0);
                     LSMotorL.setPower(0);
                     LSMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                     LSMotorL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                    telemetry.addData("Lead Screw Debug Mode enabled",0);
-                    telemetry.addData("(╯°□°)╯︵ ┻━┻(╯°□°)╯︵ ┻━┻",0);
                 }
             }
-
+            back1PrevState = back1CurrState;
+            if (leadScrewDebug) {
+                telemetry.addData("Lead Screw Debug Mode enabled", 0);
+                telemetry.addData("(╯°□°)╯︵ ┻━┻(╯°□°)╯︵ ┻━┻", 0);
+            }
             /***************** 8. Color Sensor *****************/
 
             if (((DistanceSensor) colorSensor).getDistance(DistanceUnit.CM) <= 2.5) {
