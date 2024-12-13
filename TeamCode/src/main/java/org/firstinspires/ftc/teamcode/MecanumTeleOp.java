@@ -408,7 +408,7 @@ public class MecanumTeleOp extends LinearOpMode {
             // Click "back" button to toggle the debug view
 
             // check the status of the back button on gamepad2.
-            back2CurrState = gamepad2.back;
+            back2CurrState = gamepad1.back;
             // check for button state transitions.
             if (back2CurrState && !back2PrevState)  {
                 // button is transitioning to a pressed state. So Toggle debug mode
@@ -420,7 +420,7 @@ public class MecanumTeleOp extends LinearOpMode {
                 telemetry.addData("carlos loves katelyn",0);
             }
 
-            back1CurrState = gamepad1.back;
+            back1CurrState = gamepad2.back;
             if (back1CurrState && !back1PrevState) {
                 leadScrewDebug = !leadScrewDebug;
                 if (leadScrewDebug) {
@@ -719,7 +719,7 @@ public class MecanumTeleOp extends LinearOpMode {
                 }
             }
             else {
-                if (gamepad1.ps) {
+                if (gamepad2.ps) {
                     if (LSState == 0) {//above low rung
                         LSMotorR.setTargetPosition(LS_ABOVE_LOWER_RUNG);
                         LSMotorL.setTargetPosition(LS_ABOVE_LOWER_RUNG);
@@ -821,17 +821,25 @@ public class MecanumTeleOp extends LinearOpMode {
 
                 wristServo.setPosition(WRIST_DOWN);
             }
-            if (gamepad2.dpad_left) {
+            if (gamepad2.dpad_right || gamepad2.dpad_left) {
                 extendServoR.setPosition(0.3);
                 extendServoL.setPosition(0.7);
-                slideMotor.setTargetPosition(1900);
-                slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                slideMotor.setPower(VIPER_SLIDES_POWER_PRESET);
+                if (gamepad2.dpad_right) {
+                    slideMotor.setTargetPosition(1900);
+                    slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    slideMotor.setPower(VIPER_SLIDES_POWER_PRESET);
+                } else if (gamepad2.dpad_left) {
+                    slideMotor.setTargetPosition(2300);
+                    slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    slideMotor.setPower(VIPER_SLIDES_POWER_PRESET);
+                }
+
                 runtime.reset();
                 while (opModeIsActive() && (runtime.milliseconds() < 250)) {
                     telemetry.addData("Outtake Preset", "Viper 1: %4.1f S Elapsed", runtime.milliseconds());
                     telemetry.update();
                 }
+
                 wristServo.setPosition(0.4);
                 armMotor.setTargetPosition(250);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
