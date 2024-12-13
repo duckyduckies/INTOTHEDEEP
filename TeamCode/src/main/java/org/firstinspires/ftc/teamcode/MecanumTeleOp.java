@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import android.graphics.Color;
 
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -9,17 +10,21 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
-import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 @TeleOp
 public class MecanumTeleOp extends LinearOpMode {
+    boolean robotCentricDrive = true;
+    boolean debugMode = true;
+    boolean leadScrewDebug = false;
+
     private final static double TRIGGER_THRESHOLD = 0.25;
 
     /***************** 1. Mecanum Drivetrain *****************/
@@ -27,6 +32,13 @@ public class MecanumTeleOp extends LinearOpMode {
     private final static int DRIVETRAIN_POWER_MODIFIER_EQ_VER = 0;
     private final static double DPAD_FORWARD_BACKWARD_POWER_RATIO = 0.4;
     private final static double DPAD_SIDEWAY_POWER_RATIO = 0.8;
+    // Declare our motors
+    // Make sure your ID's match your configuration
+    DcMotor frontLeftMotor;
+    DcMotor backLeftMotor;
+    DcMotor frontRightMotor;
+    DcMotor backRightMotor;
+    IMU imu;
 
     /***************** 2. Viper Slides *****************/ //28 inch,
     private final static double VIPER_SLIDES_POWER = 0.75;
@@ -57,7 +69,7 @@ public class MecanumTeleOp extends LinearOpMode {
     /***************** 4. Wrist *****************/
     private final static double WRIST_INITIAL_POSITION = 1;
     private final static double WRIST_STEP = 0.02;
-    private final static double WRIST_UP = 0.4;
+    private final static double WRIST_UP = 0.1;
     private final static double WRIST_DOWN = 1;
 
     /***************** 5. Claw Intake *****************/
@@ -88,16 +100,6 @@ public class MecanumTeleOp extends LinearOpMode {
     private final static double OUTTAKE_PRESET_WRIST_POS = 0.38;
     private final static int OUTTAKE_PRESET_ARM_POS = 250;
     private ElapsedTime runtime = new ElapsedTime();
-    // Declare our motors
-    // Make sure your ID's match your configuration
-    DcMotor frontLeftMotor;
-    DcMotor backLeftMotor;
-    DcMotor frontRightMotor;
-    DcMotor backRightMotor;
-
-    boolean debugMode = true;
-
-    boolean leadScrewDebug = false;
 
     private class DriveThread extends Thread
     {
@@ -142,14 +144,10 @@ public class MecanumTeleOp extends LinearOpMode {
             backRightMotor.setPower(backRightPower_mod * powerScale);
 
             /*if (debugMode) {
-                telemetry.addData("frontLeftPower: ", frontLeftPower);
-                telemetry.addData("backLeftPower: ", backLeftPower);
-                telemetry.addData("frontRightPower: ", frontRightPower);
-                telemetry.addData("backRightPower: ", backRightPower);
-                telemetry.addData("frontLeftPower_mod: ", frontLeftPower_mod);
-                telemetry.addData("backLeftPower_mod: ", backLeftPower_mod);
-                telemetry.addData("frontRightPower_mod: ", frontRightPower_mod);
-                telemetry.addData("backRightPower_mod: ", backRightPower_mod);
+                telemetry.addData("frontLeftPower_mod: ", frontLeftPower_mod * powerScale);
+                telemetry.addData("backLeftPower_mod: ", backLeftPower_mod * powerScale);
+                telemetry.addData("frontRightPower_mod: ", frontRightPower_mod * powerScale);
+                telemetry.addData("backRightPower_mod: ", backRightPower_mod * powerScale);
             }
             */
         }
@@ -165,11 +163,11 @@ public class MecanumTeleOp extends LinearOpMode {
                 while (opModeIsActive() && !isInterrupted())
                 {
                     /***************** 1. Mecanum Drivetrain *****************/
-                    y = gamepad1.left_stick_x; // Remember, Y stick value is reversed
-                    x = -gamepad1.left_stick_y; // Counteract imperfect strafing
+                    x = gamepad1.left_stick_x; // Remember, Y stick value is reversed
+                    y = -gamepad1.left_stick_y; // Counteract imperfect strafing
                     rx = gamepad1.right_stick_x;
 
-                    move(y,x,rx,1);
+                    move(x,y,rx,1);
 
                     if (gamepad1.dpad_up) {
                         move(0, 1,0,DPAD_FORWARD_BACKWARD_POWER_RATIO);
@@ -182,6 +180,101 @@ public class MecanumTeleOp extends LinearOpMode {
                     }
                     else if (gamepad1.dpad_left) {
                         move(-1, 0,0,DPAD_SIDEWAY_POWER_RATIO);
+                    }
+                    idle();
+                }
+            }
+            // interrupted means time to shutdown. note we can stop by detecting isInterrupted = true
+            // or by the interrupted exception thrown from the sleep function.
+            //catch (InterruptedException e) {telemetry.addData("%s interrupted", this.getName());}
+            // an error occurred in the run loop.
+            catch (Exception e) {e.printStackTrace();}
+        }
+    }
+    private class DriveThreadFieldCentric extends Thread
+    {
+        public DriveThreadFieldCentric()
+        {
+            this.setName("DriveThread");
+        }
+
+
+        /**
+         * Mecanum Drivetrain
+         * Calculates the left/right front/rear motor powers required to achieve the requested
+         * robot motions: ...
+         * @param x
+         * @param y
+         * @param rx
+         * @param powerScale
+         */
+        public void move(double x, double y, double rx, double botHeading, double powerScale) {
+            // Rotate the movement direction counter to the bot's rotation
+            double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
+            double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
+
+            rotX = rotX * 1.1;  // Counteract imperfect strafing
+
+            // Denominator is the largest motor power (absolute value) or 1
+            // This ensures all the powers maintain the same ratio,
+            // but only if at least one is out of the range [-1, 1]
+            double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
+            double frontLeftPower = (rotY + rotX + rx) / denominator;
+            double backLeftPower = (rotY - rotX + rx) / denominator;
+            double frontRightPower = (rotY - rotX - rx) / denominator;
+            double backRightPower = (rotY + rotX - rx) / denominator;
+
+            frontLeftMotor.setPower(frontLeftPower * powerScale);
+            backLeftMotor.setPower(backLeftPower * powerScale);
+            frontRightMotor.setPower(frontRightPower * powerScale);
+            backRightMotor.setPower(backRightPower * powerScale);
+
+            /*if (debugMode) {
+                telemetry.addData("frontLeftPower: ", frontLeftPower * powerScale);
+                telemetry.addData("backLeftPower: ", backLeftPower * powerScale);
+                telemetry.addData("frontRightPower: ", frontRightPower * powerScale);
+                telemetry.addData("backRightPower: ", backRightPower * powerScale);
+            }
+            */
+        }
+
+        // called when tread.start is called. thread stays in loop to do what it does until exit is
+        // signaled by main code calling thread.interrupt.
+        @Override
+        public void run()
+        {
+            try
+            {
+                double x,y,rx,botHeading;
+                while (opModeIsActive() && !isInterrupted())
+                {
+                    /***************** 1. Mecanum Drivetrain *****************/
+                    x = gamepad1.left_stick_x; // Remember, Y stick value is reversed
+                    y = -gamepad1.left_stick_y; // Counteract imperfect strafing
+                    rx = gamepad1.right_stick_x;
+
+                    // This button choice was made so that it is hard to hit on accident,
+                    // it can be freely changed based on preference.
+                    // The equivalent button is start on Xbox-style controllers.
+                    /* if (gamepad1.options) {
+                        imu.resetYaw();
+                    }
+                    */
+                    botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+
+                    move(x,y,rx,botHeading,1);
+
+                    if (gamepad1.dpad_up) {
+                        move(0, 1,0,botHeading,DPAD_FORWARD_BACKWARD_POWER_RATIO);
+                    }
+                    else if (gamepad1.dpad_down) {
+                        move(0, -1,0,botHeading,DPAD_FORWARD_BACKWARD_POWER_RATIO);
+                    }
+                    else if (gamepad1.dpad_right) {
+                        move(1, 0,0,botHeading,DPAD_SIDEWAY_POWER_RATIO);
+                    }
+                    else if (gamepad1.dpad_left) {
+                        move(-1, 0,0,botHeading,DPAD_SIDEWAY_POWER_RATIO);
                     }
                     idle();
                 }
@@ -218,9 +311,25 @@ public class MecanumTeleOp extends LinearOpMode {
         backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        Thread  driveThread = new DriveThread();
-        driveThread.start();
 
+        // Retrieve the IMU from the hardware map
+        imu = hardwareMap.get(IMU.class, "imu");
+        if (!robotCentricDrive) {
+            // Adjust the orientation parameters to match your robot
+            IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                    RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
+                    RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
+            // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
+            imu.initialize(parameters);
+        }
+
+        Thread  driveThread;
+        if (robotCentricDrive) {
+            driveThread = new DriveThread();
+        } else {
+            driveThread = new DriveThreadFieldCentric();
+        }
+        driveThread.start();
 
         /***************** 2. Viper Slides *****************/
         DcMotor slideMotor = hardwareMap.dcMotor.get("SlideMotor");
@@ -275,14 +384,20 @@ public class MecanumTeleOp extends LinearOpMode {
         // get a reference to our ColorSensor object.
         ColorSensor colorSensor = hardwareMap.get(ColorSensor.class, "ColorSensor");
 
+        /***************** Preset Buttons *****************/
         // the previous and current state of the button.
         boolean back2PrevState = true;
         boolean back2CurrState = true;
         boolean back1PrevState = false;
         boolean back1CurrState = false;
+
         if (isStopRequested()) return;
 //OP MODE CODE-------------------------------------------------------------------------
         while (opModeIsActive()) {
+            if (robotCentricDrive)
+                telemetry.addData("Robot centric driving",0);
+            else
+                telemetry.addData("Field centric driving",0);
             // Click "back" button to toggle the debug view
 
             // check the status of the back button on gamepad2.
@@ -295,8 +410,7 @@ public class MecanumTeleOp extends LinearOpMode {
             // update previous state variable.
             back2PrevState = back2CurrState;
             if (debugMode) {
-                telemetry.addData("Debug Mode enabled",0);
-                telemetry.addData("(╯°□°)╯︵ ┻━┻",0);
+                telemetry.addData("carlos loves katelyn",0);
             }
 
             back1CurrState = gamepad1.back;
@@ -312,14 +426,14 @@ public class MecanumTeleOp extends LinearOpMode {
             back1PrevState = back1CurrState;
             if (leadScrewDebug) {
                 telemetry.addData("Lead Screw Debug Mode enabled", 0);
-                telemetry.addData("(╯°□°)╯︵ ┻━┻(╯°□°)╯︵ ┻━┻", 0);
             }
             /***************** 8. Color Sensor *****************/
-
+            /*
             if (((DistanceSensor) colorSensor).getDistance(DistanceUnit.CM) <= 2.5) {
                 telemetry.addData("sample detected", 0);
                 gamepad1.runRumbleEffect(rumbleEffect);
             }
+            */
             if (colorSensor instanceof DistanceSensor) {
                 telemetry.addData("Distance (cm)", "%.3f", ((DistanceSensor) colorSensor).getDistance(DistanceUnit.CM));
             }
@@ -588,13 +702,13 @@ public class MecanumTeleOp extends LinearOpMode {
             if (leadScrewDebug) {
                 if (gamepad1.right_bumper && (LSPositionR <= LEAD_SCREW_UPPER_LIMIT && LSPositionL <= LEAD_SCREW_UPPER_LIMIT)) {
                     LSMotorR.setPower(LEAD_SCREW_POWER);
-                    LSMotorL.setPower(LEAD_SCREW_POWER);
+                    //LSMotorL.setPower(LEAD_SCREW_POWER);
                 } else if (gamepad1.left_bumper) {// && (LSPositionR >= LEAD_SCREW_OFF_THRESHOLD && LSPositionL >= LEAD_SCREW_OFF_THRESHOLD)) {
                     LSMotorR.setPower(-LEAD_SCREW_POWER);
-                    LSMotorL.setPower(-LEAD_SCREW_POWER);
+                    //LSMotorL.setPower(-LEAD_SCREW_POWER);
                 } else {
                     LSMotorR.setPower(0);
-                    LSMotorL.setPower(0);
+                    //LSMotorL.setPower(0);
                 }
             }
             else {
@@ -640,37 +754,37 @@ public class MecanumTeleOp extends LinearOpMode {
             }
             /***************** Preset Buttons *****************/
 
-            if (gamepad2.a){ // intake position
-                slideMotor.setTargetPosition(VIPER_SLIDES_OFF_THRESHOLD);
-                slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                slideMotor.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
-
+            if (gamepad2.b){ // intake position
+                extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
+                extendServoL.setPosition(-MISUMI_RETRACT_LIMIT_R+1);
                 wristServo.setPosition(INTAKE_PRESET_WRIST_POS);
                 armMotor.setTargetPosition(INTAKE_PRESET_ARM_POS);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 armMotor.setPower(ARM_POWER_PRESET);
-                extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
-                extendServoL.setPosition(-MISUMI_RETRACT_LIMIT_R+1);
+
+                slideMotor.setTargetPosition(VIPER_SLIDES_OFF_THRESHOLD);
+                slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                slideMotor.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
 
                 intakeServoR.setPower(COUNTER_CLOCKWISE_POWER);
                 intakeServoL.setPower(CLOCKWISE_POWER);
                 intakePressed = 1; // intake
             }
-            if (gamepad2.b || gamepad2.x) { // outtake at high basket
+            if (gamepad2.y || gamepad2.a) { // outtake at high or low basket
                 extendServoR.setPosition(0.2);
                 extendServoL.setPosition(0.8);
 
-                if (gamepad2.b) {
-                    slideMotor.setTargetPosition(12000);
+                if (gamepad2.y) {
+                    slideMotor.setTargetPosition(10500);
                     slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     slideMotor.setPower(VIPER_SLIDES_POWER_PRESET);
-                } else if (gamepad2.x) {
-                    slideMotor.setTargetPosition(5000);
+                } else if (gamepad2.a) {
+                    slideMotor.setTargetPosition(3250);
                     slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     slideMotor.setPower(VIPER_SLIDES_POWER_PRESET);
                 }
                 runtime.reset();
-                while (opModeIsActive() && (runtime.milliseconds() < 1000)) { //1 second
+                while (opModeIsActive() && (runtime.milliseconds() < 500)) {
                     telemetry.addData("Outtake Preset", "Viper 1: %4.1f S Elapsed", runtime.milliseconds());
                     telemetry.update();
                 }
@@ -680,7 +794,7 @@ public class MecanumTeleOp extends LinearOpMode {
                 armMotor.setPower(ARM_POWER_TO_TARGET);
             }
             // Drivetrain Moving Position
-            if (/*gamepad1.ps && */gamepad2.ps) {
+            if (/*gamepad1.ps && */gamepad2.x) {
                 telemetry.addData("gamepad2.ps", 0);
                 slideMotor.setTargetPosition(VIPER_SLIDES_OFF_THRESHOLD);
                 slideMotor.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
@@ -707,7 +821,7 @@ public class MecanumTeleOp extends LinearOpMode {
                 slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 slideMotor.setPower(VIPER_SLIDES_POWER_PRESET);
                 runtime.reset();
-                while (opModeIsActive() && (runtime.milliseconds() < 1000)) { //1 second
+                while (opModeIsActive() && (runtime.milliseconds() < 250)) {
                     telemetry.addData("Outtake Preset", "Viper 1: %4.1f S Elapsed", runtime.milliseconds());
                     telemetry.update();
                 }
