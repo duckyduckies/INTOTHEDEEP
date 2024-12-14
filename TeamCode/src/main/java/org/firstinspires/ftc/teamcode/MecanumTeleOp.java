@@ -367,8 +367,8 @@ public class MecanumTeleOp extends LinearOpMode {
         wristServo.setPosition(wristPosition);
 
         ///*************** 5. Claw Intake
-        CRServo clawServoR = hardwareMap.crservo.get("clawServoR");
-        CRServo clawServoL = hardwareMap.crservo.get("clawServoL");
+        CRServo clawServoR = hardwareMap.crservo.get("ClawServoR");
+        CRServo clawServoL = hardwareMap.crservo.get("ClawServoL");
         clawServoR.setPower(0);
         clawServoL.setPower(0);
 
@@ -827,7 +827,7 @@ public class MecanumTeleOp extends LinearOpMode {
                         LSState = 3;
                     } else if (LSState == 3) {//default position
                         LSMotorR.setTargetPosition(LEAD_SCREW_OFF_THRESHOLD);
-                        LSMotorL.setTargetPosition(LEAD_SCREW_OFF_THRESHOLD);
+                        LSMotorL.setTargetPosition(LEAD_SCREW_OFF_THRESHOLD);;
                         LSMotorR.setPower(LEAD_SCREW_POWER_PRESET);
                         LSMotorL.setPower(LEAD_SCREW_POWER_PRESET);
                         LSMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -863,11 +863,11 @@ public class MecanumTeleOp extends LinearOpMode {
                 extendServoL.setPosition(0.8);
 
                 if (gamepad2.y) {
-                    slideMotor.setTargetPosition(11250);
+                    slideMotor.setTargetPosition(11100);
                     slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     slideMotor.setPower(VIPER_SLIDES_POWER_PRESET);
                 } else if (gamepad2.a) {
-                    slideMotor.setTargetPosition(3500);
+                    slideMotor.setTargetPosition(3300);
                     slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     slideMotor.setPower(VIPER_SLIDES_POWER_PRESET);
                 }
@@ -910,7 +910,7 @@ public class MecanumTeleOp extends LinearOpMode {
                     slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     slideMotor.setPower(VIPER_SLIDES_POWER_PRESET);
                 } else if (gamepad2.dpad_left) {
-                    slideMotor.setTargetPosition(2300);
+                    slideMotor.setTargetPosition(1600);
                     slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     slideMotor.setPower(VIPER_SLIDES_POWER_PRESET);
                 }
