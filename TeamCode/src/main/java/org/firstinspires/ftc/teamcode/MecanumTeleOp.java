@@ -863,11 +863,11 @@ public class MecanumTeleOp extends LinearOpMode {
                 extendServoL.setPosition(0.8);
 
                 if (gamepad2.y) {
-                    slideMotor.setTargetPosition(10500);
+                    slideMotor.setTargetPosition(11250);
                     slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     slideMotor.setPower(VIPER_SLIDES_POWER_PRESET);
                 } else if (gamepad2.a) {
-                    slideMotor.setTargetPosition(3250);
+                    slideMotor.setTargetPosition(3500);
                     slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     slideMotor.setPower(VIPER_SLIDES_POWER_PRESET);
                 }
@@ -902,11 +902,11 @@ public class MecanumTeleOp extends LinearOpMode {
 
                 wristServo.setPosition(WRIST_DOWN);
             }
-            if (gamepad2.dpad_right || gamepad2.dpad_left) {
+            if (gamepad2.dpad_right || gamepad2.dpad_left) { //specimen outtake
                 extendServoR.setPosition(0.3);
                 extendServoL.setPosition(0.7);
                 if (gamepad2.dpad_right) {
-                    slideMotor.setTargetPosition(1900);
+                    slideMotor.setTargetPosition(2000);
                     slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     slideMotor.setPower(VIPER_SLIDES_POWER_PRESET);
                 } else if (gamepad2.dpad_left) {
