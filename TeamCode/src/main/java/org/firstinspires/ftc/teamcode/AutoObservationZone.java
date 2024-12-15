@@ -26,22 +26,30 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 @Autonomous(name="AutoObservationZone", group="Linear Opmode")
 public class AutoObservationZone extends LinearOpMode {
     private boolean debugMode = true;
     private ElapsedTime runtime = new ElapsedTime();
 
     /***************** 0. IMU *****************/
-    IMU imu;
-    PIDController           pidRotate, pidDrive;
-    Orientation             lastAngles = new Orientation();
-    double                  globalAngle;
-    double                  rotated;
+    private IMU imu;
+    // Set PID proportional value to start reducing power at about 50 degrees of rotation.
+    // P by itself may stall before turn completed so we add a bit of I (integral) which
+    // causes the PID controller to gently increase power if the turn is not completed.
+    public static PIDController           pidRotate = new PIDController(.003, .00003, 0);
+    //public static pidDrive;
+    private Orientation             lastAngles = new Orientation();
+    private double                  globalAngle;
+    private double                 rotated;
 
     /***************** 1. Mecanum Drivetrain *****************/
     private final static int DRIVETRAIN_POWER_MODIFIER_EQ_VER = 0;
-    private final static double DPAD_FORWARD_BACKWARD_POWER_RATIO = 0.4;
-    private final static double DPAD_SIDEWAY_POWER_RATIO = 0.8;
+    private static double DPAD_FORWARD_BACKWARD_POWER_RATIO = 0.4;
+    private static double DPAD_SIDEWAY_POWER_RATIO = 0.8;
     private DcMotor frontLeftMotor = null;
     private DcMotor frontRightMotor = null;
     private DcMotor backLeftMotor = null;
@@ -166,6 +174,7 @@ public class AutoObservationZone extends LinearOpMode {
                 diff = (degrees+currentAngle); // needs to move this much: diff
             else
                 diff = (-degrees-currentAngle); // needs to move this much: diff
+            telemetry.addData("target degrees", degrees);
             telemetry.addData("current degrees", currentAngle);
             telemetry.addData("diff", diff);
             telemetry.update();
@@ -199,6 +208,7 @@ public class AutoObservationZone extends LinearOpMode {
                 diff = (degrees+currentAngle); // needs to move this much: diff
             else
                 diff = (-degrees-currentAngle); // needs to move this much: diff
+            telemetry.addData("target degrees", degrees);
             telemetry.addData("current degrees", currentAngle);
             telemetry.addData("diff", diff);
             telemetry.update();
@@ -268,8 +278,14 @@ public class AutoObservationZone extends LinearOpMode {
         return globalAngle;
     }
 
+    FtcDashboard dashboard;
+    public static int TARGET_ANGLE = 90;
+
     @Override
     public void runOpMode() {
+        dashboard = FtcDashboard.getInstance();
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+
         telemetry.addData("Robot", "initializing");
         telemetry.update();
 
@@ -284,11 +300,6 @@ public class AutoObservationZone extends LinearOpMode {
         // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
         imu.initialize(parameters);
         imu.resetYaw();
-
-        // Set PID proportional value to start reducing power at about 50 degrees of rotation.
-        // P by itself may stall before turn completed so we add a bit of I (integral) which
-        // causes the PID controller to gently increase power if the turn is not completed.
-        pidRotate = new PIDController(.003, .00003, 0);
 
         /*
         // Set PID proportional value to produce non-zero correction value when robot veers off
@@ -322,24 +333,23 @@ public class AutoObservationZone extends LinearOpMode {
 
         waitForStart();
 
+        if (isStopRequested()) return;
+
+        telemetry.addData("Robot", "starts");
+        telemetry.update();
+
+        // ****** PID Experiment on rotation *******
+        RotateClockwise(TARGET_ANGLE,0.2);
+/*
         // ****** Action [1] ******
 
         // Rachel: If following FTC sample code RobotAutoDriveByTime
         move(0.3, -0, 0, 1);
         runtime.reset();
         while (opModeIsActive() && (runtime.milliseconds() < 700)) {
-            telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.milliseconds());
-            telemetry.update();
+            //telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.milliseconds());
+            //telemetry.update();
         }
-
-        /*
-        move(0.3 * 1.1, -0, 0, 1);
-        try {
-            Thread.sleep(700); // Sleep for 1 second (1000 milliseconds)
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        */
 
         // ****** Action [2] ******
 
@@ -347,25 +357,13 @@ public class AutoObservationZone extends LinearOpMode {
         move(0, 0, 0, 1);
         runtime.reset();
         while (opModeIsActive() && (runtime.milliseconds() < 200)) {
-            telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.milliseconds());
-            telemetry.update();
+            //telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.milliseconds());
+            //telemetry.update();
         }
-
-        /*
-        frontLeftMotor.setPower(0);
-        backLeftMotor.setPower(0);
-        frontRightMotor.setPower(0);
-        backRightMotor.setPower(0);
-        try {
-            Thread.sleep(200); // Sleep for 1 second (1000 milliseconds)
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        */
 
         // ****** Action [3] ******
 
-        move(0 * 1.1, 0, -0.3, 1);
+        move(0, 0, -0.3, 1);
         try {
             Thread.sleep(500); // Sleep for 1 second (1000 milliseconds)
         } catch (InterruptedException e) {
@@ -374,39 +372,18 @@ public class AutoObservationZone extends LinearOpMode {
 
         // ****** Action [4] ******
 
-        move(0.3 * 1.1, -0.1, 0, 1);
+        move(0.3, -0.1, 0, 1);
         try {
             Thread.sleep(500); // Sleep for 0.5 second (500 milliseconds)
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+ */
         frontLeftMotor.setPower(0);
         backLeftMotor.setPower(0);
         frontRightMotor.setPower(0);
         backRightMotor.setPower(0);
-        try {
-            Thread.sleep(200); // Sleep for 0.2 second (200 milliseconds)
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        //Insert arm code here
-        try {
-            Thread.sleep(200); // Sleep for 0.2 second (200 milliseconds)
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        move(0 * 1.1, -0, -0.3, 1);
-        try {
-            Thread.sleep(500); // Sleep for 1 second (1000 milliseconds)
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        move(0 * 1.1, -0.1, -0, 1);
 
-        try {
-            Thread.sleep(500); // Sleep for 0.5 second (500 milliseconds)
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 }
