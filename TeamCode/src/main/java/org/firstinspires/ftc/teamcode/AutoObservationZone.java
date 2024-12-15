@@ -16,7 +16,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @Autonomous(name="AutoObservationZone", group="Linear Opmode")
 public class AutoObservationZone extends LinearOpMode {
-    boolean debug_mode = true;
+    boolean debugMode = true;
     private DcMotor frontLeftMotor = null;
     private DcMotor frontRightMotor = null;
     private DcMotor backLeftMotor = null;
@@ -26,6 +26,7 @@ public class AutoObservationZone extends LinearOpMode {
     PIDController           pidRotate, pidDrive;
     Orientation             lastAngles = new Orientation();
     double                  globalAngle;
+    double                  rotated;
     public void move(double x, double y, double rx, double powerScale) {
         x = x * 1.1;
         double denominator,frontLeftPower,backLeftPower,frontRightPower,backRightPower;
@@ -51,7 +52,8 @@ public class AutoObservationZone extends LinearOpMode {
         frontRightMotor.setPower(frontRightPower_mod * powerScale);
         backRightMotor.setPower(backRightPower_mod * powerScale);
 
-        if (debug_mode) {
+        if (debugMode) {
+            /*
             telemetry.addData("frontLeftPower: ", frontLeftPower);
             telemetry.addData("backLeftPower: ", backLeftPower);
             telemetry.addData("frontRightPower: ", frontRightPower);
@@ -60,22 +62,95 @@ public class AutoObservationZone extends LinearOpMode {
             telemetry.addData("backLeftPower_mod: ", backLeftPower_mod);
             telemetry.addData("frontRightPower_mod: ", frontRightPower_mod);
             telemetry.addData("backRightPower_mod: ", backRightPower_mod);
+            telemetry.update();
+             */
         }
     }
 
-
-    private void RotateClockwise(double angle, double power) {
+    // angle: + clockwise; - counter-clockwise
+    // power: always + here
+    // This function only supports moving MORE THAN 2 degree
+    private void rotate(int degrees, double power) {
         imu.resetYaw(); // set to 0 degree
+        // restart imu angle tracking.
+        resetAngle();
+
+        // if degrees > 359 we cap at 359 with same sign as original degrees.
+        if (Math.abs(degrees) > 359) degrees = (int) Math.copySign(359, degrees);
+
+        // start pid controller. PID controller will monitor the turn angle with respect to the
+        // target angle and reduce power as we approach the target angle. This is to prevent the
+        // robots momentum from overshooting the turn after we turn off the power. The PID controller
+        // reports onTarget() = true when the difference between turn angle and target angle is within
+        // 1% of target (tolerance) which is about 1 degree. This helps prevent overshoot. Overshoot is
+        // dependant on the motor and gearing configuration, starting power, weight of the robot and the
+        // on target tolerance. If the controller overshoots, it will reverse the sign of the output
+        // turning the robot back toward the setpoint value.
+
+        pidRotate.reset();
+        pidRotate.setSetpoint(degrees);
+        pidRotate.setInputRange(0, degrees);
+        pidRotate.setOutputRange(0, power);
+        pidRotate.setTolerance(1);
+        pidRotate.enable();
+
         double currentAngle = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
         currentAngle = currentAngle *  180 / Math.PI;
         double leftFront, rightFront, leftRear, rightRear, turn;
         double diff =0;
-        diff = (angle+currentAngle); // needs to move this much: diff
+        if (degrees > 0) {
+            diff = (degrees + currentAngle); // needs to move this much: diff
+        } else {
+            diff = (-degrees - currentAngle); // needs to move this much: diff
+        }
+        double absDiff = Math.abs(diff);
         double sign;
-        while (Math.abs(diff)>2){ // while there is more than 2 degree to move
-            sign = diff/Math.abs(diff);
-            // increase the constant to increase turning speed
-            turn = sign*power; //turn = sign*0.3; // by Bo
+        double power2;
+
+        // Tries to move at least 2 degree to get off 0
+        while (opModeIsActive() && Math.abs(diff)>=absDiff-2) {
+            sign = diff / Math.abs(diff);
+            if (degrees > 0) {
+                // increase the power to increase turning speed
+                turn = sign * power; //turn = sign*0.3; // by Bo
+            } else {
+                turn = -sign * power;
+            }
+            leftFront =  turn;
+            rightFront = -turn;
+            leftRear =  turn;
+            rightRear =  - turn;
+
+            frontLeftMotor.setPower(leftFront);
+            backLeftMotor.setPower(leftRear);
+            frontRightMotor.setPower(rightFront);
+            backRightMotor.setPower(rightRear);
+
+            sleep(100);
+
+            currentAngle = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+            currentAngle = currentAngle *  180 / Math.PI;
+            if (degrees > 0)
+                diff = (degrees+currentAngle); // needs to move this much: diff
+            else
+                diff = (-degrees-currentAngle); // needs to move this much: diff
+            telemetry.addData("current degrees", currentAngle);
+            telemetry.addData("diff", diff);
+            telemetry.update();
+        }
+
+        //while (Math.abs(diff)>2) { // while there is more than 2 degree to move
+        do {
+            power2 = pidRotate.performPID(getAngle());
+
+            sign = diff / Math.abs(diff);
+            if (degrees > 0) {
+                // increase the power to increase turning speed
+                turn = sign * power2; //turn = sign*0.3; // by Bo
+            } else {
+                turn = -sign * power2;
+            }
+
             leftFront =  turn;
             rightFront = -turn;
             leftRear =  turn;
@@ -88,48 +163,40 @@ public class AutoObservationZone extends LinearOpMode {
 
             currentAngle = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
             currentAngle = currentAngle *  180 / Math.PI;
-            diff = (angle+currentAngle);
-            //telemetry.addData("current angle", currentAngle);
-            //telemetry.addData("diff", diff);
-            //telemetry.update();
-        }
+            if (degrees > 0)
+                diff = (degrees+currentAngle); // needs to move this much: diff
+            else
+                diff = (-degrees-currentAngle); // needs to move this much: diff
+            telemetry.addData("current degrees", currentAngle);
+            telemetry.addData("diff", diff);
+            telemetry.update();
+        } while (opModeIsActive() && !pidRotate.onTarget());
+
         frontLeftMotor.setPower(0); //brake
         backLeftMotor.setPower(0);
         frontRightMotor.setPower(0);
         backRightMotor.setPower(0);
-    }
-    private void RotateCounterClockwise(double angle, double power) {
-        imu.resetYaw(); // set to 0 degree
-        double currentAngle = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-        currentAngle = currentAngle *  180 / Math.PI;
-        double leftFront, rightFront, leftRear, rightRear, turn;
-        double diff =0;
-        diff = (angle-currentAngle);
-        double sign;
-        while (Math.abs(diff)>2){
-            sign = diff/Math.abs(diff);
-            turn = -sign*power; //turn = -1*sign*0.3; // by Bo
-            leftFront =  turn;
-            rightFront = - turn;
-            leftRear =  turn;
-            rightRear = - turn;
 
-            frontLeftMotor.setPower(leftFront);
-            backLeftMotor.setPower(leftRear);
-            frontRightMotor.setPower(rightFront);
-            backRightMotor.setPower(rightRear);
+        rotated = getAngle();
 
-            currentAngle = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-            currentAngle = currentAngle *  180 / Math.PI;
-            diff = (90-currentAngle);
-            //telemetry.addData("current angle", currentAngle);
-            //telemetry.addData("diff", diff);
-            //telemetry.update();
+        if (debugMode) {
+            telemetry.addData("1 imu heading", lastAngles.firstAngle);
+            telemetry.addData("2 global heading", globalAngle);
+            telemetry.addData("3 turn rotation", rotated);
+            telemetry.update();
         }
-        frontLeftMotor.setPower(0);
-        backLeftMotor.setPower(0);
-        frontRightMotor.setPower(0);
-        backRightMotor.setPower(0);
+        
+        // wait for rotation to stop.
+        sleep(500);
+
+        // reset angle tracking on new heading.
+        resetAngle();
+    }
+    private void RotateClockwise(int angle, double power) {
+        rotate(angle,power);
+    }
+    private void RotateCounterClockwise(int angle, double power) {
+        rotate(-angle,power);
     }
 
     /**

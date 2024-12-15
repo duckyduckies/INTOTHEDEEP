@@ -17,7 +17,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+
 @TeleOp
 public class MecanumTeleOp extends LinearOpMode {
     boolean robotCentricDrive = true;
@@ -109,9 +109,6 @@ public class MecanumTeleOp extends LinearOpMode {
     private final static double OUTTAKE_PRESET_WRIST_POS = 0.38;
     private final static int OUTTAKE_PRESET_ARM_POS = 250;
     private ElapsedTime runtime = new ElapsedTime();
-    PIDController           pidRotate, pidDrive;
-    Orientation             lastAngles = new Orientation();
-    double                  globalAngle;
     private class DriveThread extends Thread
     {
         public DriveThread()
@@ -322,31 +319,11 @@ public class MecanumTeleOp extends LinearOpMode {
         }
         imu.resetYaw();
 
-        // Set PID proportional value to start reducing power at about 50 degrees of rotation.
-        // P by itself may stall before turn completed so we add a bit of I (integral) which
-        // causes the PID controller to gently increase power if the turn is not completed.
-        pidRotate = new PIDController(.003, .00003, 0);
-
-        /*
-        // Set PID proportional value to produce non-zero correction value when robot veers off
-        // straight line. P value controls how sensitive the correction is.
-        pidDrive = new PIDController(.05, 0, 0);
-        */
-
         waitForStart();
 
         telemetry.addData("Robot", "initializing");
         telemetry.update();
 
-        sleep(1000);
-
-        /*
-        // Set up parameters for driving in a straight line.
-        pidDrive.setSetpoint(0);
-        pidDrive.setOutputRange(0, power);
-        pidDrive.setInputRange(-90, 90);
-        pidDrive.enable();
-        */
 
         /***************** 1. Mecanum Drivetrain *****************/
         // Reverse the right side motors. This may be wrong for your setup.
