@@ -505,7 +505,7 @@ public class MecanumTeleOp extends LinearOpMode {
                     slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     slideMotor.setPower(VIPER_SLIDES_POWER_TO_TARGET);
                 }
-            } else if (gamepad2.left_stick_button){//turns off viper slides
+            } else if (gamepad2.ps){//turns off viper slides
                 slideMotor.setPower(0);
                 slideMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             }
@@ -863,11 +863,11 @@ public class MecanumTeleOp extends LinearOpMode {
                 extendServoL.setPosition(0.8);
 
                 if (gamepad2.y) {
-                    slideMotor.setTargetPosition(10000);
+                    slideMotor.setTargetPosition(10300);
                     slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     slideMotor.setPower(VIPER_SLIDES_POWER_PRESET);
                 } else if (gamepad2.a) {
-                    slideMotor.setTargetPosition(2700);
+                    slideMotor.setTargetPosition(2850);
                     slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     slideMotor.setPower(VIPER_SLIDES_POWER_PRESET);
                 }
@@ -906,11 +906,11 @@ public class MecanumTeleOp extends LinearOpMode {
                 extendServoR.setPosition(0.3);
                 extendServoL.setPosition(0.7);
                 if (gamepad2.dpad_right) {
-                    slideMotor.setTargetPosition(2150);
+                    slideMotor.setTargetPosition(2400);
                     slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     slideMotor.setPower(VIPER_SLIDES_POWER_PRESET);
                 } else if (gamepad2.dpad_left) {
-                    slideMotor.setTargetPosition(2150);
+                    slideMotor.setTargetPosition(2300);
                     slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     slideMotor.setPower(VIPER_SLIDES_POWER_PRESET);
                 }
