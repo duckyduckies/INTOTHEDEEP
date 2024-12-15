@@ -2,28 +2,34 @@ package org.firstinspires.ftc.teamcode;
 
 import android.graphics.Color;
 
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.CRServo;
+
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+
+import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
+import org.firstinspires.ftc.robotcore.internal.system.Deadline;
+
+import java.util.concurrent.TimeUnit;
+
 @TeleOp
 public class MecanumTeleOp extends LinearOpMode {
-    boolean robotCentricDrive = true;
+    private ElapsedTime runtime = new ElapsedTime();
     boolean debugMode = true;
     boolean leadScrewDebug = false;
-
     boolean back2PrevState = true;
     boolean back2CurrState = true;
     boolean back1PrevState = false;
@@ -34,11 +40,13 @@ public class MecanumTeleOp extends LinearOpMode {
     boolean intakeCurrState = false;
     boolean LSPrevState = false;
     boolean LSCurrState = false;
-
     private final static double TRIGGER_THRESHOLD = 0.25;
 
-    /***************** 1. Mecanum Drivetrain *****************/
+    /***************** 0. IMU *****************/
+    IMU imu;
 
+    /***************** 1. Mecanum Drivetrain *****************/
+    boolean robotCentricDrive = true;
     private final static int DRIVETRAIN_POWER_MODIFIER_EQ_VER = 0;
     private final static double DPAD_FORWARD_BACKWARD_POWER_RATIO = 0.4;
     private final static double DPAD_SIDEWAY_POWER_RATIO = 0.8;
@@ -48,7 +56,6 @@ public class MecanumTeleOp extends LinearOpMode {
     DcMotor backLeftMotor;
     DcMotor frontRightMotor;
     DcMotor backRightMotor;
-    IMU imu;
 
     /***************** 2. Viper Slides *****************/ //28 inch,
     private final static double VIPER_SLIDES_POWER = 0.75;
@@ -103,12 +110,46 @@ public class MecanumTeleOp extends LinearOpMode {
     private final static int LS_ABOVE_LOWER_RUNG = 30000;
     private final static int LS_LOWER_RUNG = 8000;
     /***************** 8. Color Sensor *****************/
+    /***************** 9. LED *****************/
+    /*
+     * Change the pattern every 10 seconds in AUTO mode.
+     */
+    private final static int LED_PERIOD = 10;
+
+    /*
+     * Rate limit gamepad button presses to every 500ms.
+     */
+    private final static int GAMEPAD_LOCKOUT = 500;
+
+    RevBlinkinLedDriver blinkinLedDriver;
+    public final static RevBlinkinLedDriver.BlinkinPattern defaultPattern = RevBlinkinLedDriver.BlinkinPattern.GRAY;
+    //public final static RevBlinkinLedDriver.BlinkinPattern greenPattern = RevBlinkinLedDriver.BlinkinPattern.DARK_GREEN;
+    public final static RevBlinkinLedDriver.BlinkinPattern yellowPattern = RevBlinkinLedDriver.BlinkinPattern.YELLOW;
+    public final static RevBlinkinLedDriver.BlinkinPattern redPattern = RevBlinkinLedDriver.BlinkinPattern.RED;
+    public final static RevBlinkinLedDriver.BlinkinPattern bluePattern = RevBlinkinLedDriver.BlinkinPattern.BLUE;
+    private String currentPattern;
+    protected enum DisplayKind {
+        MANUAL,
+        AUTO
+    }
+    private DisplayKind displayKind;
+    Deadline ledCycleDeadline;
+    Deadline gamepadRateLimit;
+
+    public String getBlinkinLEDDisplayPattern() {
+        return currentPattern;
+    }
+    protected void setBlinkinLEDDisplayPattern(RevBlinkinLedDriver.BlinkinPattern pattern)
+    {
+        blinkinLedDriver.setPattern(pattern);
+        currentPattern = currentPattern.toString();
+    }
     /***************** Preset Buttons *****************/
     private final static double INTAKE_PRESET_WRIST_POS = 0.52;
     private final static int INTAKE_PRESET_ARM_POS = -1400;
     private final static double OUTTAKE_PRESET_WRIST_POS = 0.38;
     private final static int OUTTAKE_PRESET_ARM_POS = 250;
-    private ElapsedTime runtime = new ElapsedTime();
+
     private class DriveThread extends Thread
     {
         public DriveThread()
@@ -156,6 +197,7 @@ public class MecanumTeleOp extends LinearOpMode {
                 telemetry.addData("backLeftPower_mod: ", backLeftPower_mod * powerScale);
                 telemetry.addData("frontRightPower_mod: ", frontRightPower_mod * powerScale);
                 telemetry.addData("backRightPower_mod: ", backRightPower_mod * powerScale);
+                telemetry.update();
             }
             */
         }
@@ -300,6 +342,7 @@ public class MecanumTeleOp extends LinearOpMode {
                 .addStep(1.0, 1.0, 500)  //  Rumble right motor 100% for 500 mSec
                 .build();
 
+        /***************** 0. IMU *****************/
         // Retrieve the IMU from the hardware map
         imu = hardwareMap.get(IMU.class, "imu");
         if (robotCentricDrive) {
@@ -323,7 +366,6 @@ public class MecanumTeleOp extends LinearOpMode {
 
         telemetry.addData("Robot", "initializing");
         telemetry.update();
-
 
         /***************** 1. Mecanum Drivetrain *****************/
         // Reverse the right side motors. This may be wrong for your setup.
@@ -404,8 +446,16 @@ public class MecanumTeleOp extends LinearOpMode {
         // get a reference to our ColorSensor object.
         ColorSensor colorSensor = hardwareMap.get(ColorSensor.class, "ColorSensor");
 
+        /***************** 8. LED *****************/
+        displayKind = DisplayKind.MANUAL;
+
+        blinkinLedDriver = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
+        setBlinkinLEDDisplayPattern(defaultPattern);
+        
+        ledCycleDeadline = new Deadline(LED_PERIOD, TimeUnit.SECONDS);
+        gamepadRateLimit = new Deadline(GAMEPAD_LOCKOUT, TimeUnit.MILLISECONDS);
+
         /***************** Preset Buttons *****************/
-        // the previous and current state of the button.
 
 
 

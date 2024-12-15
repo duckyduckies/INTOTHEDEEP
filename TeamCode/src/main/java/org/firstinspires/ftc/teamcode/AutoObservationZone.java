@@ -1,32 +1,51 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import android.graphics.Color;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.CRServo;
+
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+
+import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
+import org.firstinspires.ftc.robotcore.internal.system.Deadline;
+
 @Autonomous(name="AutoObservationZone", group="Linear Opmode")
 public class AutoObservationZone extends LinearOpMode {
-    boolean debugMode = true;
-    private DcMotor frontLeftMotor = null;
-    private DcMotor frontRightMotor = null;
-    private DcMotor backLeftMotor = null;
-    private DcMotor backRightMotor = null;
-    IMU imu;
+    private boolean debugMode = true;
     private ElapsedTime runtime = new ElapsedTime();
+
+    /***************** 0. IMU *****************/
+    IMU imu;
     PIDController           pidRotate, pidDrive;
     Orientation             lastAngles = new Orientation();
     double                  globalAngle;
     double                  rotated;
+
+    /***************** 1. Mecanum Drivetrain *****************/
+    private final static int DRIVETRAIN_POWER_MODIFIER_EQ_VER = 0;
+    private final static double DPAD_FORWARD_BACKWARD_POWER_RATIO = 0.4;
+    private final static double DPAD_SIDEWAY_POWER_RATIO = 0.8;
+    private DcMotor frontLeftMotor = null;
+    private DcMotor frontRightMotor = null;
+    private DcMotor backLeftMotor = null;
+    private DcMotor backRightMotor = null;
     public void move(double x, double y, double rx, double powerScale) {
         x = x * 1.1;
         double denominator,frontLeftPower,backLeftPower,frontRightPower,backRightPower;
@@ -41,7 +60,7 @@ public class AutoObservationZone extends LinearOpMode {
         backRightPower = (y + x - rx) / denominator;
 
         // modify power by using DcMotorPowerModifierAdv()
-        int eqVer = 1;
+        int eqVer = DRIVETRAIN_POWER_MODIFIER_EQ_VER;
         frontLeftPower_mod = DcMotorPowerModifierAdv(frontLeftPower, eqVer);
         backLeftPower_mod = DcMotorPowerModifierAdv(backLeftPower, eqVer);
         frontRightPower_mod = DcMotorPowerModifierAdv(frontRightPower, eqVer);
@@ -52,8 +71,8 @@ public class AutoObservationZone extends LinearOpMode {
         frontRightMotor.setPower(frontRightPower_mod * powerScale);
         backRightMotor.setPower(backRightPower_mod * powerScale);
 
+        /*
         if (debugMode) {
-            /*
             telemetry.addData("frontLeftPower: ", frontLeftPower);
             telemetry.addData("backLeftPower: ", backLeftPower);
             telemetry.addData("frontRightPower: ", frontRightPower);
@@ -63,10 +82,23 @@ public class AutoObservationZone extends LinearOpMode {
             telemetry.addData("frontRightPower_mod: ", frontRightPower_mod);
             telemetry.addData("backRightPower_mod: ", backRightPower_mod);
             telemetry.update();
-             */
+        }
+         */
+    }
+    private double DcMotorPowerModifier(double Power) {
+        return Math.pow(Math.tanh(Power) / Math.tanh(1), 3);
+    }
+    private double DcMotorPowerModifierAdv(double Power, int eqVer) {
+        if (eqVer == 1) {
+            return Math.pow(Math.tanh(Power) / Math.tanh(1), 3);
+        } else if (eqVer == 2) {
+            return Math.pow(Power, 3);
+        } else if (eqVer == 3) {
+            return Math.pow(Power, 5);
+        } else {
+            return Power;
         }
     }
-
     // angle: + clockwise; - counter-clockwise
     // power: always + here
     // This function only supports moving MORE THAN 2 degree
@@ -236,26 +268,12 @@ public class AutoObservationZone extends LinearOpMode {
         return globalAngle;
     }
 
-    private double DcMotorPowerModifier(double Power) {
-        return Math.pow(Math.tanh(Power) / Math.tanh(1), 3);
-    }
-
-    private double DcMotorPowerModifierAdv(double Power, int eqVer) {
-        if (eqVer == 1) {
-            return Math.pow(Math.tanh(Power) / Math.tanh(1), 3);
-        } else if (eqVer == 2) {
-            return Math.pow(Power, 3);
-        } else if (eqVer == 3) {
-            return Math.pow(Power, 5);
-        } else {
-            return Power;
-        }
-    }
-
     @Override
     public void runOpMode() {
+        telemetry.addData("Robot", "initializing");
+        telemetry.update();
 
-
+        /***************** 0. IMU *****************/
         // Retrieve the IMU from the hardware map
         imu = hardwareMap.get(IMU.class, "imu");
 
@@ -276,16 +294,7 @@ public class AutoObservationZone extends LinearOpMode {
         // Set PID proportional value to produce non-zero correction value when robot veers off
         // straight line. P value controls how sensitive the correction is.
         pidDrive = new PIDController(.05, 0, 0);
-        */
 
-        waitForStart();
-
-        telemetry.addData("Robot", "initializing");
-        telemetry.update();
-
-        sleep(1000);
-
-        /*
         // Set up parameters for driving in a straight line.
         pidDrive.setSetpoint(0);
         pidDrive.setOutputRange(0, power);
@@ -293,6 +302,7 @@ public class AutoObservationZone extends LinearOpMode {
         pidDrive.enable();
         */
 
+        /***************** 1. Mecanum Drivetrain *****************/
         // Initialize the hardware variables
         frontLeftMotor = hardwareMap.get(DcMotor.class, "frontLeftMotor");
         frontRightMotor = hardwareMap.get(DcMotor.class, "frontRightMotor");
@@ -310,6 +320,7 @@ public class AutoObservationZone extends LinearOpMode {
         double frontRightPower = 0;
         double backRightPower = 0;
 
+        waitForStart();
 
         // ****** Action [1] ******
 
@@ -352,7 +363,7 @@ public class AutoObservationZone extends LinearOpMode {
         }
         */
 
-        // ****** Action [2] ******
+        // ****** Action [3] ******
 
         move(0 * 1.1, 0, -0.3, 1);
         try {
@@ -361,7 +372,7 @@ public class AutoObservationZone extends LinearOpMode {
             e.printStackTrace();
         }
 
-        // ****** Action [2] ******
+        // ****** Action [4] ******
 
         move(0.3 * 1.1, -0.1, 0, 1);
         try {
