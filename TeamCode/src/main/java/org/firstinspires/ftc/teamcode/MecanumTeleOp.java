@@ -15,10 +15,9 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 @TeleOp
 public class MecanumTeleOp extends LinearOpMode {
     boolean robotCentricDrive = true;
@@ -110,7 +109,9 @@ public class MecanumTeleOp extends LinearOpMode {
     private final static double OUTTAKE_PRESET_WRIST_POS = 0.38;
     private final static int OUTTAKE_PRESET_ARM_POS = 250;
     private ElapsedTime runtime = new ElapsedTime();
-
+    PIDController           pidRotate, pidDrive;
+    Orientation             lastAngles = new Orientation();
+    double                  globalAngle;
     private class DriveThread extends Thread
     {
         public DriveThread()
@@ -161,7 +162,6 @@ public class MecanumTeleOp extends LinearOpMode {
             }
             */
         }
-
         // called when tread.start is called. thread stays in loop to do what it does until exit is
         // signaled by main code calling thread.interrupt.
         @Override
@@ -303,25 +303,6 @@ public class MecanumTeleOp extends LinearOpMode {
                 .addStep(1.0, 1.0, 500)  //  Rumble right motor 100% for 500 mSec
                 .build();
 
-        waitForStart();
-        /***************** 1. Mecanum Drivetrain *****************/
-        // Reverse the right side motors. This may be wrong for your setup.
-        // If your robot moves backwards when commanded to go forwards,
-        // reverse the left side instead.
-        // See the note about this earlier on this page.
-        frontLeftMotor = hardwareMap.dcMotor.get("frontLeftMotor");
-        backLeftMotor = hardwareMap.dcMotor.get("backLeftMotor");
-        frontRightMotor = hardwareMap.dcMotor.get("frontRightMotor");
-        backRightMotor = hardwareMap.dcMotor.get("backRightMotor");
-        backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        frontLeftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        backRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
         // Retrieve the IMU from the hardware map
         imu = hardwareMap.get(IMU.class, "imu");
         if (robotCentricDrive) {
@@ -339,6 +320,51 @@ public class MecanumTeleOp extends LinearOpMode {
             // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
             imu.initialize(parameters);
         }
+        imu.resetYaw();
+
+        // Set PID proportional value to start reducing power at about 50 degrees of rotation.
+        // P by itself may stall before turn completed so we add a bit of I (integral) which
+        // causes the PID controller to gently increase power if the turn is not completed.
+        pidRotate = new PIDController(.003, .00003, 0);
+
+        /*
+        // Set PID proportional value to produce non-zero correction value when robot veers off
+        // straight line. P value controls how sensitive the correction is.
+        pidDrive = new PIDController(.05, 0, 0);
+        */
+
+        waitForStart();
+
+        telemetry.addData("Robot", "initializing");
+        telemetry.update();
+
+        sleep(1000);
+
+        /*
+        // Set up parameters for driving in a straight line.
+        pidDrive.setSetpoint(0);
+        pidDrive.setOutputRange(0, power);
+        pidDrive.setInputRange(-90, 90);
+        pidDrive.enable();
+        */
+
+        /***************** 1. Mecanum Drivetrain *****************/
+        // Reverse the right side motors. This may be wrong for your setup.
+        // If your robot moves backwards when commanded to go forwards,
+        // reverse the left side instead.
+        // See the note about this earlier on this page.
+        frontLeftMotor = hardwareMap.dcMotor.get("frontLeftMotor");
+        backLeftMotor = hardwareMap.dcMotor.get("backLeftMotor");
+        frontRightMotor = hardwareMap.dcMotor.get("frontRightMotor");
+        backRightMotor = hardwareMap.dcMotor.get("backRightMotor");
+        backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontLeftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        backRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         Thread  driveThread;
         if (robotCentricDrive) {
