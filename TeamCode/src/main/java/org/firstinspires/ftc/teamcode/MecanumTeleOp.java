@@ -87,8 +87,6 @@ public class MecanumTeleOp extends LinearOpMode {
     private final static int ARM_LOWER_LIMIT = -1500;
     private final static int ARM_MISUMI_RETRACT_THRESHOLD_L = -950;
     private final static int ARM_WRIST_RETRACT_THRESHOLD_L = -750;
-    private final static int ARM_DRIVING_POSITION = -150;
-    //////////////// Will combine driving position with initial position
 
     /***************** 4. Wrist *****************/
     private final static double WRIST_STEP = 0.02;
@@ -115,31 +113,23 @@ public class MecanumTeleOp extends LinearOpMode {
     private final static int LEAD_SCREW_LOWER_LIMIT = 0;
     private final static int LEAD_SCREW_OFF_THRESHOLD = 300;
     /***************** 8. Color Sensor *****************/
+    public static boolean TEAM_COLOR_RED = false; // 224, 18, 76, 154
+    private final static int BLUE_HUE = 224;
+    private final static int RED_HUE = 18;
+    private final static int YELLOW_HUE = 76;
+    private final static int NO_SAMPLE_HUE = 154;
     /***************** 9. LED *****************/
-    /*
-     * Change the pattern every 10 seconds in AUTO mode.
-     */
-    private final static int LED_PERIOD = 10;
-
-    /*
-     * Rate limit gamepad button presses to every 500ms.
-     */
-    private final static int GAMEPAD_LOCKOUT = 500;
-
     RevBlinkinLedDriver blinkinLedDriver;
-    private final static RevBlinkinLedDriver.BlinkinPattern defaultPattern = RevBlinkinLedDriver.BlinkinPattern.GRAY;
-    //public final static RevBlinkinLedDriver.BlinkinPattern greenPattern = RevBlinkinLedDriver.BlinkinPattern.DARK_GREEN;
-    private final static RevBlinkinLedDriver.BlinkinPattern yellowPattern = RevBlinkinLedDriver.BlinkinPattern.YELLOW;
-    private final static RevBlinkinLedDriver.BlinkinPattern redPattern = RevBlinkinLedDriver.BlinkinPattern.RED;
-    private final static RevBlinkinLedDriver.BlinkinPattern bluePattern = RevBlinkinLedDriver.BlinkinPattern.BLUE;
-    private String currentPattern;
+    private final static RevBlinkinLedDriver.BlinkinPattern DEFAULT_PATTERN = RevBlinkinLedDriver.BlinkinPattern.GRAY;
+    private final static RevBlinkinLedDriver.BlinkinPattern YELLOW_PATTERN = RevBlinkinLedDriver.BlinkinPattern.YELLOW;
+    private final static RevBlinkinLedDriver.BlinkinPattern RED_PATTERN = RevBlinkinLedDriver.BlinkinPattern.RED;
+    private final static RevBlinkinLedDriver.BlinkinPattern BLUE_PATTERN = RevBlinkinLedDriver.BlinkinPattern.BLUE;
     protected enum DisplayKind {
         MANUAL,
         AUTO
     }
     private DisplayKind displayKind;
-    private Deadline ledCycleDeadline;
-    private Deadline gamepadRateLimit;
+    private String currentPattern;
 
     public String getBlinkinLEDDisplayPattern() {
         return currentPattern;
@@ -147,7 +137,7 @@ public class MecanumTeleOp extends LinearOpMode {
     protected void setBlinkinLEDDisplayPattern(RevBlinkinLedDriver.BlinkinPattern pattern)
     {
         blinkinLedDriver.setPattern(pattern);
-        currentPattern = currentPattern.toString();
+        currentPattern = pattern.toString();
     }
     /***************** 10. FTC Dashboard *****************/
     private static void logGamepad(Telemetry telemetry, Gamepad gamepad, String prefix) {
@@ -434,9 +424,12 @@ public class MecanumTeleOp extends LinearOpMode {
         armMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         int armPosition = ARM_INITIAL_POSITION;
+        // Build a rest for the arm so there is no need to maintain halfway position
+        /*
         armMotor.setTargetPosition(armPosition);
         armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         armMotor.setPower(ARM_POWER_TO_TARGET);
+         */
         /***************** 4. Wrist *****************/
         double wristPosition = WRIST_DOWN; // default position is down
         Servo wristServo = hardwareMap.servo.get("WristServo");
@@ -479,12 +472,8 @@ public class MecanumTeleOp extends LinearOpMode {
 
         /***************** 8. LED *****************/
         displayKind = DisplayKind.MANUAL;
-
         blinkinLedDriver = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
-        setBlinkinLEDDisplayPattern(defaultPattern);
-        
-        ledCycleDeadline = new Deadline(LED_PERIOD, TimeUnit.SECONDS);
-        gamepadRateLimit = new Deadline(GAMEPAD_LOCKOUT, TimeUnit.MILLISECONDS);
+        setBlinkinLEDDisplayPattern(DEFAULT_PATTERN);
 
         /***************** Preset Buttons *****************/
 
@@ -496,8 +485,8 @@ public class MecanumTeleOp extends LinearOpMode {
 
 //OP MODE CODE-------------------------------------------------------------------------
         while (opModeIsActive()) {
-            logGamepad(telemetry, gamepad1, "gamepad1");
-            logGamepad(telemetry, gamepad2, "gamepad2");
+            //logGamepad(telemetry, gamepad1, "gamepad1");
+            //logGamepad(telemetry, gamepad2, "gamepad2");
 
             if (robotCentricDrive)
                 telemetry.addData("Robot centric driving",0);
@@ -533,13 +522,28 @@ public class MecanumTeleOp extends LinearOpMode {
                 telemetry.addData("Lead Screw Debug Mode enabled", 0);
             }
             /***************** 8. Color Sensor *****************/
-            /*
+
             if (((DistanceSensor) colorSensor).getDistance(DistanceUnit.CM) <= 2.5) {
                 telemetry.addData("sample detected", 0);
-                gamepad1.runRumbleEffect(rumbleEffect);
-                gamepad2.runRumbleEffect(rumbleEffect);
+                // convert the RGB values to HSV values.
+                Color.RGBToHSV((int)colorSensor.red() * 8, (int) colorSensor.green() * 8, (int) colorSensor.blue() * 8, hsvValues);
+                // send the info back to driver station using telemetry function.
+                telemetry.addData("Clear", colorSensor.alpha());
+                telemetry.addData("Red  ", colorSensor.red());
+                telemetry.addData("Green", colorSensor.green());
+                telemetry.addData("Blue ", colorSensor.blue());
+                telemetry.addData("Hue", hsvValues[0]);
+                if ((TEAM_COLOR_RED && hsvValues[0] >= BLUE_HUE - 10 && hsvValues[0] <= BLUE_HUE + 10)
+                    || (!TEAM_COLOR_RED && hsvValues[0] >= RED_HUE - 10 && hsvValues[0] <= RED_HUE + 10)){
+                    clawServoR.setPower(CLOCKWISE_POWER);
+                    clawServoL.setPower(COUNTER_CLOCKWISE_POWER);
+                    runtime.reset();
+                    while (runtime.milliseconds() <= 500 && opModeIsActive()) idle();
+                    clawServoR.setPower(0);
+                    clawServoL.setPower(0);
+                }
             }
-            */
+
 
             if (colorSensor instanceof DistanceSensor) {
                 telemetry.addData("Distance (cm)", "%.3f", ((DistanceSensor) colorSensor).getDistance(DistanceUnit.CM));
@@ -560,15 +564,7 @@ public class MecanumTeleOp extends LinearOpMode {
             telemetry.addData("Alpha", "%.3f", colors.alpha);
             */
 
-            // convert the RGB values to HSV values.
-            Color.RGBToHSV((int)colorSensor.red() * 8, (int) colorSensor.green() * 8, (int) colorSensor.blue() * 8, hsvValues);
 
-            // send the info back to driver station using telemetry function.
-            telemetry.addData("Clear", colorSensor.alpha());
-            telemetry.addData("Red  ", colorSensor.red());
-            telemetry.addData("Green", colorSensor.green());
-            telemetry.addData("Blue ", colorSensor.blue());
-            telemetry.addData("Hue", hsvValues[0]);
 
             /***************** 1. Mecanum Drivetrain *****************/
 
@@ -595,10 +591,13 @@ public class MecanumTeleOp extends LinearOpMode {
                     slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     slideMotor.setPower(VIPER_SLIDES_POWER_TO_TARGET);
                 }
-            } else if (gamepad2.ps){//turns off viper slides
+            }
+            /*
+            if (gamepad1.ps){//turns off viper slides
                 slideMotor.setPower(0);
                 slideMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             }
+            */
             /*
             if (gamepad1.y) {
                 slideMotor.setTargetPosition(500);
@@ -634,7 +633,7 @@ public class MecanumTeleOp extends LinearOpMode {
                     clawServoL.setPower(0);
                     clawState=0;
                 }
-                else if (armPosition<=ARM_DRIVING_POSITION+200 && armPosition>=ARM_DRIVING_POSITION) {
+                else if (armPosition<=ARM_INITIAL_POSITION+200 && armPosition>=ARM_INITIAL_POSITION) {
                     extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
                     extendServoL.setPosition(-MISUMI_RETRACT_LIMIT_R+1);
                     wristServo.setPosition(WRIST_DOWN);
@@ -704,6 +703,7 @@ public class MecanumTeleOp extends LinearOpMode {
                     clawState = 1;
                 }
             }
+            intakePrevState = intakeCurrState;
             if (outtakeCurrState && !outtakePrevState) {
                 if (clawState == 2) {
                     clawState = 0;
@@ -712,7 +712,7 @@ public class MecanumTeleOp extends LinearOpMode {
                     clawState = 2;
                 }
             }
-            
+            outtakePrevState = outtakeCurrState;
             if (clawState==0) {
                 clawServoR.setPower(0);
                 clawServoL.setPower(0);
@@ -858,8 +858,19 @@ public class MecanumTeleOp extends LinearOpMode {
                 }
             }
             else {
-                /*
                 LSCurrState = gamepad2.ps;
+                if (LSCurrState && !LSPrevState) {
+                    if (LSState == 0) {
+                        LSState = 1;
+                    } else if (LSState == 1) {
+                        LSState = 2;
+                    } else if (LSState == 2) {
+                        LSState = 3;
+                    } else {
+                        LSState = 0;
+                    }
+                }
+                LSPrevState = LSCurrState;
                 if (LSState == 0) {//default position
                     LSMotorR.setTargetPosition(LEAD_SCREW_OFF_THRESHOLD);
                     LSMotorL.setTargetPosition(LEAD_SCREW_OFF_THRESHOLD);
@@ -889,7 +900,7 @@ public class MecanumTeleOp extends LinearOpMode {
                     LSMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     LSMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 }
-                 */
+                /*
                 if (gamepad2.ps) {
                     if (LSState == 0) {//above low rung
                         LSMotorR.setTargetPosition(LS_ABOVE_LOWER_RUNG);
@@ -925,10 +936,12 @@ public class MecanumTeleOp extends LinearOpMode {
                         LSState = 0;
                     }
                 }
+                */
             }
             if (debugMode) {
                 telemetry.addData("LSPositionR:", LSPositionR);
                 telemetry.addData("LSPositionL:", LSPositionL);
+                telemetry.addData("Lead Screw State: ", LSState);
             }
             /***************** Preset Buttons *****************/
 
@@ -973,24 +986,33 @@ public class MecanumTeleOp extends LinearOpMode {
             }
             // Drivetrain Moving Position
             if (/*gamepad1.ps && */gamepad2.x) {
-                telemetry.addData("gamepad2.ps", 0);
-                slideMotor.setTargetPosition(VIPER_SLIDES_OFF_THRESHOLD);
-                slideMotor.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
-                slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
                 //brake
                 clawState = 0;
                 clawServoR.setPower(0);
                 clawServoL.setPower(0);
 
-                armMotor.setTargetPosition(ARM_DRIVING_POSITION);
+                armMotor.setTargetPosition(ARM_INITIAL_POSITION);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 armMotor.setPower(ARM_POWER_TO_TARGET);
+
+                ///// After the arm reaches position, switch back to RUN_WITHOUT_ENCODER mode
+                while (armMotor.isBusy()) idle();
+                armMotor.setPower(0);
+                armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
 
                 extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
                 extendServoL.setPosition(-MISUMI_RETRACT_LIMIT_R+1);
 
                 wristServo.setPosition(WRIST_DOWN);
+
+                slideMotor.setTargetPosition(VIPER_SLIDES_OFF_THRESHOLD);
+                slideMotor.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
+                slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                ///// After the viper slides reaches position, switch back to RUN_WITHOUT_ENCODER mode
+                while (slideMotor.isBusy()) idle();
+                slideMotor.setPower(0);
+                slideMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             }
             if (gamepad2.dpad_right || gamepad2.dpad_left) { //specimen outtake
                 extendServoR.setPosition(MISUMI_EXTEND_LIMIT_R);
