@@ -946,12 +946,14 @@ public class MecanumTeleOp extends LinearOpMode {
             /***************** Preset Buttons *****************/
 
             if (gamepad2.b){ // intake position
-                extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
-                extendServoL.setPosition(-MISUMI_RETRACT_LIMIT_R+1);
-                wristServo.setPosition(INTAKE_PRESET_WRIST_POS);
                 armMotor.setTargetPosition(INTAKE_PRESET_ARM_POS);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 armMotor.setPower(ARM_POWER_PRESET);
+
+                extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
+                extendServoL.setPosition(-MISUMI_RETRACT_LIMIT_R+1);
+                wristServo.setPosition(INTAKE_PRESET_WRIST_POS);
+
 
                 slideMotor.setTargetPosition(VIPER_SLIDES_OFF_THRESHOLD);
                 slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -991,6 +993,9 @@ public class MecanumTeleOp extends LinearOpMode {
                 clawServoR.setPower(0);
                 clawServoL.setPower(0);
 
+                extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
+                extendServoL.setPosition(-MISUMI_RETRACT_LIMIT_R+1);
+
                 armMotor.setTargetPosition(ARM_INITIAL_POSITION);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 armMotor.setPower(ARM_POWER_TO_TARGET);
@@ -999,10 +1004,6 @@ public class MecanumTeleOp extends LinearOpMode {
                 while (armMotor.isBusy()) idle();
                 armMotor.setPower(0);
                 armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-
-                extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
-                extendServoL.setPosition(-MISUMI_RETRACT_LIMIT_R+1);
 
                 wristServo.setPosition(WRIST_DOWN);
 
