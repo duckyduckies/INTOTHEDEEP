@@ -1,12 +1,12 @@
 package org.firstinspires.ftc.teamcode;
-
+import com.acmerobotics.dashboard.config.Config;
 // PID controller courtesy of Peter Tischler, with modifications.
-
+@Config
 public class PIDController
 {
-    private double m_P;                     // factor for "proportional" control
-    private double m_I;                     // factor for "integral" control
-    private double m_D;                     // factor for "derivative" control
+    public static double m_P;                     // factor for "proportional" control
+    public static double m_I;                     // factor for "integral" control
+    public static double m_D;                     // factor for "derivative" control
     private double m_input;                 // sensor input for pid controller
     private double m_maximumOutput = 1.0;	// |maximum output|
     private double m_minimumOutput = 0.0;	// |minimum output|

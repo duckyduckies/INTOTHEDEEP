@@ -24,12 +24,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
-import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.acmerobotics.dashboard.config.Config;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
+@Config
 @Autonomous(name="AutoObservationZone", group="Linear Opmode")
 public class AutoObservationZone extends LinearOpMode {
     private boolean debugMode = true;
@@ -48,8 +49,6 @@ public class AutoObservationZone extends LinearOpMode {
 
     /***************** 1. Mecanum Drivetrain *****************/
     private final static int DRIVETRAIN_POWER_MODIFIER_EQ_VER = 0;
-    private static double DPAD_FORWARD_BACKWARD_POWER_RATIO = 0.4;
-    private static double DPAD_SIDEWAY_POWER_RATIO = 0.8;
     private DcMotor frontLeftMotor = null;
     private DcMotor frontRightMotor = null;
     private DcMotor backLeftMotor = null;
@@ -111,6 +110,10 @@ public class AutoObservationZone extends LinearOpMode {
     // power: always + here
     // This function only supports moving MORE THAN 2 degree
     private void rotate(int degrees, double power) {
+
+        //
+        // This part comes from Portland State University
+        //
         imu.resetYaw(); // set to 0 degree
         // restart imu angle tracking.
         resetAngle();
@@ -134,6 +137,16 @@ public class AutoObservationZone extends LinearOpMode {
         pidRotate.setTolerance(1);
         pidRotate.enable();
 
+        //
+        // This part comes from last season.
+        // There were two rotate functions back then: clockwise & counter-clockwise
+        // To be consistent with Portland State Univ., two functions are combined.
+        // Positive input degree means clockwise;
+        // Negative input degree means counter-clockwise.
+        //
+        // For a PID function to determine the next power used to rotate,
+        // the degree must not be 0, so first rotate at least 2 degree to get off zero.
+        //
         double currentAngle = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
         currentAngle = currentAngle *  180 / Math.PI;
         double leftFront, rightFront, leftRear, rightRear, turn;
@@ -242,6 +255,7 @@ public class AutoObservationZone extends LinearOpMode {
     }
 
     /**
+     * (Portland State University)
      * Resets the cumulative angle tracking to zero.
      */
     private void resetAngle()
@@ -252,6 +266,7 @@ public class AutoObservationZone extends LinearOpMode {
     }
 
     /**
+     * (Portland State University)
      * Get current cumulative angle rotation from last reset.
      * @return Angle in degrees. + = left, - = right from zero point.
      */
@@ -280,6 +295,7 @@ public class AutoObservationZone extends LinearOpMode {
 
     FtcDashboard dashboard;
     public static int TARGET_ANGLE = 90;
+    public static double TURN_POWER = 0.2;
 
     @Override
     public void runOpMode() {
@@ -325,6 +341,10 @@ public class AutoObservationZone extends LinearOpMode {
         frontLeftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         backRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         double frontLeftPower = 0;
         double backLeftPower = 0;
@@ -339,7 +359,15 @@ public class AutoObservationZone extends LinearOpMode {
         telemetry.update();
 
         // ****** PID Experiment on rotation *******
-        RotateClockwise(TARGET_ANGLE,0.2);
+        RotateClockwise(TARGET_ANGLE, TURN_POWER);
+        sleep(3000);
+        RotateClockwise(TARGET_ANGLE+90, TURN_POWER);
+        sleep(3000);
+        RotateClockwise(TARGET_ANGLE+180, TURN_POWER);
+        sleep(3000);
+        RotateClockwise(TARGET_ANGLE+270, TURN_POWER);
+        sleep(3000);
+
 /*
         // ****** Action [1] ******
 
