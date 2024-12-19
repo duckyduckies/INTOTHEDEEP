@@ -67,9 +67,9 @@ public class MecanumTeleOp extends LinearOpMode {
 
     /***************** 2. Viper Slides *****************/ //28 inch,
     //private final static double VIPER_SLIDES_POWER = 0.75;
-    private final static double VIPER_SLIDES_POWER_TO_TARGET = 1;
-    private final static double VIPER_SLIDES_POWER_PRESET = 1;
-    private final static double VIPER_SLIDES_POWER_PRESET_DOWN = 1;
+    private final static double VIPER_SLIDES_POWER_MANUAL = 1;
+    public static double VIPER_SLIDES_POWER_PRESET = 1;
+    public static double VIPER_SLIDES_POWER_PRESET_DOWN = 0.8;
     private final static int VIPER_SLIDES_INITIAL_POSITION = 0;
     private final static int VIPER_SLIDES_STEP = 200;
     private final static int VIPER_SLIDES_UPPER_LIMIT = 5000;
@@ -79,11 +79,11 @@ public class MecanumTeleOp extends LinearOpMode {
     /***************** 3. Arm *****************/
 
     //private final static double ARM_POWER = 0.5;
-    private final static double ARM_POWER_TO_TARGET = 0.7;
-    private final static double ARM_POWER_PRESET = 0.7;
+    private final static double ARM_POWER_MANUAL = 0.7;
+    public static double ARM_POWER_PRESET = 0.8;
     private final static int ARM_INITIAL_POSITION = 0;
     private final static int ARM_STEP = 100;
-    private final static int ARM_UPPER_LIMIT = 250;
+    private final static int ARM_UPPER_LIMIT = 350;
     private final static int ARM_LOWER_LIMIT = -1400;
     private final static int ARM_MISUMI_RETRACT_THRESHOLD_L = -1100;
     private final static int ARM_WRIST_RETRACT_THRESHOLD_L = -900;
@@ -157,11 +157,11 @@ public class MecanumTeleOp extends LinearOpMode {
     }
     /***************** Preset Buttons *****************/
     public static double INTAKE_PRESET_WRIST_POS = 0.52;
-    public static int INTAKE_PRESET_ARM_POS = -1300;
+    public static int INTAKE_PRESET_ARM_POS = -1350;
     public static int OUTTAKE_PRESET_HIGH_BASKET = 3433;
     public static int OUTTAKE_PRESET_LOW_BASKET = 950;
     public static double OUTTAKE_PRESET_WRIST_POS = 0.38;
-    public static int OUTTAKE_PRESET_ARM_POS = 250;
+    public static int OUTTAKE_PRESET_ARM_POS = 350;
     public static double OUTTAKE_PRESET_CHAMBER_WRIST_POS = 0.4;
     public static int OUTTAKE_PRESET_HIGH_CHAMBER_1 = 800;
     public static int OUTTAKE_PRESET_HIGH_CHAMBER_2 = 766;
@@ -579,8 +579,8 @@ public class MecanumTeleOp extends LinearOpMode {
                 slideMotorL.setTargetPosition(slidePositionR);
                 slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                slideMotorR.setPower(VIPER_SLIDES_POWER_TO_TARGET);
-                slideMotorL.setPower(VIPER_SLIDES_POWER_TO_TARGET);
+                slideMotorR.setPower(VIPER_SLIDES_POWER_MANUAL);
+                slideMotorL.setPower(VIPER_SLIDES_POWER_MANUAL);
             } else if (gamepad2.left_stick_y > 0 && slidePositionR > VIPER_SLIDES_LOWER_LIMIT) {
                 if (slidePositionR < VIPER_SLIDES_OFF_THRESHOLD) { //turns off viper slides to prevent burning
                     slideMotorR.setPower(0);
@@ -594,8 +594,8 @@ public class MecanumTeleOp extends LinearOpMode {
                     slideMotorL.setTargetPosition(slidePositionR);
                     slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                    slideMotorR.setPower(VIPER_SLIDES_POWER_TO_TARGET);
-                    slideMotorL.setPower(VIPER_SLIDES_POWER_TO_TARGET);
+                    slideMotorR.setPower(VIPER_SLIDES_POWER_MANUAL);
+                    slideMotorL.setPower(VIPER_SLIDES_POWER_MANUAL);
                 }
             }
             /*
@@ -624,7 +624,9 @@ public class MecanumTeleOp extends LinearOpMode {
             /***************** 3. Arm *****************/
             //armMotor.setPower(-gamepad2.right_stick_y/4);
             armPosition=armMotor.getCurrentPosition();
-            if (gamepad2.right_stick_y < 0) {// && armPosition <= ARM_INITIAL_POSITION) { // joystick above the origin; arm raises up
+            if ((gamepad2.right_stick_y < 0)  &&
+            ((slidePositionR<OUTTAKE_PRESET_HIGH_CHAMBER_1 && armPosition <= ARM_INITIAL_POSITION)
+            ||(slidePositionR>=OUTTAKE_PRESET_HIGH_CHAMBER_1 && armPosition <= ARM_UPPER_LIMIT))) { // joystick above the origin; arm raises up
                 // retracts misumi slides when the arm rotates up and leaves the floor (at -1100 )
                 if (armPosition<=ARM_MISUMI_RETRACT_THRESHOLD_L+200 && armPosition>=ARM_MISUMI_RETRACT_THRESHOLD_L){
                     extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
@@ -648,7 +650,7 @@ public class MecanumTeleOp extends LinearOpMode {
                 armPosition = armPosition + ARM_STEP; // arm goes up by one step
                 armMotor.setTargetPosition(armPosition);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                armMotor.setPower(ARM_POWER_TO_TARGET);
+                armMotor.setPower(ARM_POWER_MANUAL);
 
             } else if (gamepad2.right_stick_y > 0 && armPosition >= ARM_LOWER_LIMIT) { // joystick below the origin; arm puts down
                 if (armPosition<=ARM_WRIST_RETRACT_THRESHOLD_L+200 && armPosition>=ARM_WRIST_RETRACT_THRESHOLD_L){
@@ -657,7 +659,7 @@ public class MecanumTeleOp extends LinearOpMode {
                 armPosition = armPosition - ARM_STEP; // arm goes down by one step
                 armMotor.setTargetPosition(armPosition);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                armMotor.setPower(ARM_POWER_TO_TARGET);
+                armMotor.setPower(ARM_POWER_MANUAL);
             } //else {
                 //armMotor.setPower(0); // RUN_WITHOUT_ENCODER mode
             //}
@@ -673,7 +675,7 @@ public class MecanumTeleOp extends LinearOpMode {
             if (gamepad1.x) {
                 armMotor.setTargetPosition(-500);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                armMotor.setPower(ARM_POWER_TO_TARGET);
+                armMotor.setPower(ARM_POWER_MANUAL);
             }
             */
 
@@ -980,7 +982,7 @@ public class MecanumTeleOp extends LinearOpMode {
             if (gamepad2.y || gamepad2.a) { // outtake at high or low basket
                 armMotor.setTargetPosition(ARM_INITIAL_POSITION);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                armMotor.setPower(ARM_POWER_TO_TARGET);
+                armMotor.setPower(ARM_POWER_PRESET);
 
                 if (gamepad2.y) {
                     slideMotorR.setTargetPosition(OUTTAKE_PRESET_HIGH_BASKET); //10300
@@ -1009,13 +1011,13 @@ public class MecanumTeleOp extends LinearOpMode {
 
                 armMotor.setTargetPosition(OUTTAKE_PRESET_ARM_POS);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                armMotor.setPower(ARM_POWER_TO_TARGET);
+                armMotor.setPower(ARM_POWER_PRESET);
             }
             if (gamepad2.dpad_right || gamepad2.dpad_left) { //specimen outtake
 
                 armMotor.setTargetPosition(ARM_INITIAL_POSITION);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                armMotor.setPower(ARM_POWER_TO_TARGET);
+                armMotor.setPower(ARM_POWER_PRESET);
 
                 if (gamepad2.dpad_right) {
                     slideMotorR.setTargetPosition(OUTTAKE_PRESET_HIGH_CHAMBER_1); //2400
@@ -1046,7 +1048,7 @@ public class MecanumTeleOp extends LinearOpMode {
 
                 armMotor.setTargetPosition(OUTTAKE_PRESET_ARM_POS);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                armMotor.setPower(ARM_POWER_TO_TARGET);
+                armMotor.setPower(ARM_POWER_PRESET);
             }
             // Drivetrain Moving Position
             if (/*gamepad1.ps && */gamepad2.x) {
@@ -1060,7 +1062,7 @@ public class MecanumTeleOp extends LinearOpMode {
 
                 armMotor.setTargetPosition(ARM_INITIAL_POSITION);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                armMotor.setPower(ARM_POWER_TO_TARGET);
+                armMotor.setPower(ARM_POWER_PRESET);
 
                 ///// After the arm reaches position, switch back to RUN_WITHOUT_ENCODER mode
                 while (armMotor.isBusy()) idle();
