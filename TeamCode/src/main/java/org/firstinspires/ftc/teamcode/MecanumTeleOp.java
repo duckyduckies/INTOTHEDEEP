@@ -79,10 +79,10 @@ public class MecanumTeleOp extends LinearOpMode {
     /***************** 3. Arm *****************/
 
     //private final static double ARM_POWER = 0.5;
-    private final static double ARM_POWER_MANUAL = 0.7;
-    public static double ARM_POWER_PRESET = 0.8;
+    private final static double ARM_POWER_MANUAL = 0.6;
+    public static double ARM_POWER_PRESET = 0.9;
     private final static int ARM_INITIAL_POSITION = 0;
-    private final static int ARM_STEP = 100;
+    private final static int ARM_STEP = 50;
     private final static int ARM_UPPER_LIMIT = 350;
     private final static int ARM_LOWER_LIMIT = -1400;
     private final static int ARM_MISUMI_RETRACT_THRESHOLD_L = -1100;
@@ -1029,10 +1029,6 @@ public class MecanumTeleOp extends LinearOpMode {
                 } else if (gamepad2.dpad_left) {
                     slideMotorR.setTargetPosition(OUTTAKE_PRESET_HIGH_CHAMBER_2); //2300
                     slideMotorL.setTargetPosition(OUTTAKE_PRESET_HIGH_CHAMBER_2); //2300
-                    slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                    slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                    slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET);
-                    slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET);
                 }
 
                 runtime.reset();
