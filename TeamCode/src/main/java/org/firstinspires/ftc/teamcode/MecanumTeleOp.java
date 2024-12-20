@@ -90,6 +90,7 @@ public class MecanumTeleOp extends LinearOpMode {
     private final static int ARM_LOWER_LIMIT = -1400;
     private final static int ARM_MISUMI_RETRACT_THRESHOLD_L = -1100;
     private final static int ARM_WRIST_RETRACT_THRESHOLD_L = -900;
+    DcMotor armMotor;
     int armPosition = ARM_INITIAL_POSITION;
     /***************** 4. Wrist *****************/
     private final static double WRIST_STEP = 0.02;
@@ -443,7 +444,7 @@ public class MecanumTeleOp extends LinearOpMode {
         slideMotorL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         /***************** 3. Arm *****************/
-        DcMotor armMotor = hardwareMap.dcMotor.get("ArmMotor");
+        armMotor = hardwareMap.dcMotor.get("ArmMotor");
         armMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
