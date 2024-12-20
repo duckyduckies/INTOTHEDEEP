@@ -33,10 +33,16 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 @Config
 @Autonomous(name="AutoNetZone", group="Linear Opmode")
 public class AutoNetZone extends LinearOpMode {
+    MecanumRobot robot = new MecanumRobot(this);
+
     private boolean debugMode = true;
     private ElapsedTime runtime = new ElapsedTime();
+    public static int ACTION_1_TIMER = 400;
+    public static int ACTION_2_TIMER = 700;
+
 
     /***************** 0. IMU *****************/
+/*
     private IMU imu;
     // Set PID proportional value to start reducing power at about 50 degrees of rotation.
     // P by itself may stall before turn completed so we add a bit of I (integral) which
@@ -46,8 +52,9 @@ public class AutoNetZone extends LinearOpMode {
     private Orientation             lastAngles = new Orientation();
     private double                  globalAngle;
     private double                 rotated;
-
+*/
     /***************** 1. Mecanum Drivetrain *****************/
+/*
     private final static int DRIVETRAIN_POWER_MODIFIER_EQ_VER = 0;
     private DcMotor frontLeftMotor = null;
     private DcMotor frontRightMotor = null;
@@ -77,21 +84,7 @@ public class AutoNetZone extends LinearOpMode {
         backLeftMotor.setPower(backLeftPower_mod * powerScale);
         frontRightMotor.setPower(frontRightPower_mod * powerScale);
         backRightMotor.setPower(backRightPower_mod * powerScale);
-
-        /*
-        if (debugMode) {
-            telemetry.addData("frontLeftPower: ", frontLeftPower);
-            telemetry.addData("backLeftPower: ", backLeftPower);
-            telemetry.addData("frontRightPower: ", frontRightPower);
-            telemetry.addData("backRightPower: ", backRightPower);
-            telemetry.addData("frontLeftPower_mod: ", frontLeftPower_mod);
-            telemetry.addData("backLeftPower_mod: ", backLeftPower_mod);
-            telemetry.addData("frontRightPower_mod: ", frontRightPower_mod);
-            telemetry.addData("backRightPower_mod: ", backRightPower_mod);
-            telemetry.update();
-        }
-         */
-    }
+  }
     private double DcMotorPowerModifier(double Power) {
         return Math.pow(Math.tanh(Power) / Math.tanh(1), 3);
     }
@@ -254,10 +247,6 @@ public class AutoNetZone extends LinearOpMode {
         rotate(-angle,power);
     }
 
-    /**
-     * (Portland State University)
-     * Resets the cumulative angle tracking to zero.
-     */
     private void resetAngle()
     {
         lastAngles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
@@ -265,11 +254,6 @@ public class AutoNetZone extends LinearOpMode {
         globalAngle = 0;
     }
 
-    /**
-     * (Portland State University)
-     * Get current cumulative angle rotation from last reset.
-     * @return Angle in degrees. + = left, - = right from zero point.
-     */
     private double getAngle()
     {
         // We experimentally determined the Z axis is the axis we want to use for heading angle.
@@ -292,6 +276,7 @@ public class AutoNetZone extends LinearOpMode {
 
         return globalAngle;
     }
+    */
 
     FtcDashboard dashboard;
     public static int TARGET_ANGLE = 45;
@@ -305,7 +290,9 @@ public class AutoNetZone extends LinearOpMode {
         telemetry.addData("Robot", "initializing");
         telemetry.update();
 
+        robot.initialize();
         /***************** 0. IMU *****************/
+        /*
         // Retrieve the IMU from the hardware map
         imu = hardwareMap.get(IMU.class, "imu");
 
@@ -316,7 +303,7 @@ public class AutoNetZone extends LinearOpMode {
         // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
         imu.initialize(parameters);
         imu.resetYaw();
-
+*/
         /*
         // Set PID proportional value to produce non-zero correction value when robot veers off
         // straight line. P value controls how sensitive the correction is.
@@ -330,6 +317,7 @@ public class AutoNetZone extends LinearOpMode {
         */
 
         /***************** 1. Mecanum Drivetrain *****************/
+        /*
         // Initialize the hardware variables
         frontLeftMotor = hardwareMap.get(DcMotor.class, "frontLeftMotor");
         frontRightMotor = hardwareMap.get(DcMotor.class, "frontRightMotor");
@@ -350,7 +338,7 @@ public class AutoNetZone extends LinearOpMode {
         double backLeftPower = 0;
         double frontRightPower = 0;
         double backRightPower = 0;
-
+*/
         waitForStart();
 
         if (isStopRequested()) return;
@@ -359,7 +347,7 @@ public class AutoNetZone extends LinearOpMode {
         telemetry.update();
 
         // ****** PID Experiment on rotation *******
-
+/*
         RotateClockwise(TARGET_ANGLE, TURN_POWER);
         sleep(3000);
         RotateClockwise(TARGET_ANGLE+90, TURN_POWER);
@@ -368,14 +356,14 @@ public class AutoNetZone extends LinearOpMode {
         sleep(3000);
         RotateClockwise(TARGET_ANGLE+270, TURN_POWER);
         sleep(3000);
-
+*/
 
         // ****** Action [1] ******
 
         // Rachel: If following FTC sample code RobotAutoDriveByTime
-        move(0.3, -0, 0, 1);
+        robot.move(-1, 0, 0, 0.5);
         runtime.reset();
-        while (opModeIsActive() && (runtime.milliseconds() < 700)) {
+        while (opModeIsActive() && (runtime.milliseconds() < ACTION_1_TIMER)) {
             //telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.milliseconds());
             //telemetry.update();
         }
@@ -383,35 +371,23 @@ public class AutoNetZone extends LinearOpMode {
         // ****** Action [2] ******
 
         // Rachel: If following FTC sample code RobotAutoDriveByTime
-        move(0, 0, 0, 1);
+        robot.move(0, -1, 0, 0.5);
         runtime.reset();
-        while (opModeIsActive() && (runtime.milliseconds() < 200)) {
+        while (opModeIsActive() && (runtime.milliseconds() < ACTION_2_TIMER)) {
             //telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.milliseconds());
             //telemetry.update();
         }
 
         // ****** Action [3] ******
 
-        move(0, 0, -0.3, 1);
-        try {
-            Thread.sleep(500); // Sleep for 1 second (1000 milliseconds)
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        robot.rotate(-45, 0.5);
+
 
         // ****** Action [4] ******
 
-        move(0.3, -0.1, 0, 1);
-        try {
-            Thread.sleep(500); // Sleep for 0.5 second (500 milliseconds)
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        robot.highBasket();
 
-        frontLeftMotor.setPower(0);
-        backLeftMotor.setPower(0);
-        frontRightMotor.setPower(0);
-        backRightMotor.setPower(0);
+        robot.move(0,0,0,0);
 
     }
 }
