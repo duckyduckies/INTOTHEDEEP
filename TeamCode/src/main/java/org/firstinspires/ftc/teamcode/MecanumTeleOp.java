@@ -178,8 +178,8 @@ public class MecanumTeleOp extends LinearOpMode {
     }
     /***************** Preset Buttons *****************/
     public static double INTAKE_PRESET_WRIST_POS = 0.52;
-    public static int INTAKE_PRESET_ARM_POS = -1250;
-    public static int OUTTAKE_PRESET_HIGH_BASKET_VIPER_POS = 3433;
+    public static int INTAKE_PRESET_ARM_POS = -1400;
+    public static int OUTTAKE_PRESET_HIGH_BASKET_VIPER_POS = 3600;
     public static int OUTTAKE_PRESET_LOW_BASKET_VIPER_POS = 950;
     public static double OUTTAKE_PRESET_WRIST_POS = 0.38;
     public static int OUTTAKE_PRESET_ARM_POS = 350;
@@ -987,7 +987,7 @@ public class MecanumTeleOp extends LinearOpMode {
                 slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
 
                 runtime.reset();
-                while (opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy() && (runtime.milliseconds() < 250));
+                while (opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy() && (runtime.milliseconds() < 250)) idle();
                 slideMotorR.setPower(0);
                 slideMotorL.setPower(0);
                 slideMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -1025,6 +1025,7 @@ public class MecanumTeleOp extends LinearOpMode {
                 while (opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy() && (runtime.milliseconds() < 500)) {
                     //telemetry.addData("Outtake Preset", "Viper: %4.1f S Elapsed", runtime.milliseconds());
                     //telemetry.update();
+                    idle();
                 }
                 extendServoR.setPosition(MISUMI_EXTEND_LIMIT_R);
                 extendServoL.setPosition(1-MISUMI_EXTEND_LIMIT_R);
@@ -1071,12 +1072,21 @@ public class MecanumTeleOp extends LinearOpMode {
             // Drivetrain Moving Position
             if (/*gamepad1.ps && */gamepad2.x) {
                 //brake
+                slideMotorR.setTargetPosition(VIPER_SLIDES_OFF_THRESHOLD);
+                slideMotorL.setTargetPosition(VIPER_SLIDES_OFF_THRESHOLD);
+                slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
+                slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
+                slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
                 clawState = 0;
                 clawServoR.setPower(0);
                 clawServoL.setPower(0);
 
                 extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
                 extendServoL.setPosition(-MISUMI_RETRACT_LIMIT_R+1);
+
+                wristServo.setPosition(WRIST_DOWN);
 
                 armMotor.setTargetPosition(ARM_INITIAL_POSITION);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -1087,18 +1097,11 @@ public class MecanumTeleOp extends LinearOpMode {
                 armMotor.setPower(0);
                 armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-                wristServo.setPosition(WRIST_DOWN);
 
-                slideMotorR.setTargetPosition(VIPER_SLIDES_OFF_THRESHOLD);
-                slideMotorL.setTargetPosition(VIPER_SLIDES_OFF_THRESHOLD);
-                slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
-                slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
-                slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 ///// After the viper slides reaches position, switch back to RUN_WITHOUT_ENCODER mode
 
                 runtime.reset();
-                while (opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy() && (runtime.milliseconds() < 2500));
+                while (opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy() && (runtime.milliseconds() < 2500)) idle();
                 slideMotorR.setPower(0);
                 slideMotorL.setPower(0);
                 slideMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
