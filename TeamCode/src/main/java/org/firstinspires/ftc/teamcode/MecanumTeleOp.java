@@ -74,8 +74,11 @@ public class MecanumTeleOp extends LinearOpMode {
     private final static int VIPER_SLIDES_STEP = 200;
     private final static int VIPER_SLIDES_UPPER_LIMIT = 5000;
     private final static int VIPER_SLIDES_LOWER_LIMIT = 0;
-    private final static int VIPER_SLIDES_OFF_THRESHOLD = 150;
-    
+    private final static int VIPER_SLIDES_OFF_THRESHOLD = 50;
+    DcMotor slideMotorR;
+    DcMotor slideMotorL;
+    int slidePositionR = VIPER_SLIDES_INITIAL_POSITION;
+    int slidePositionL = VIPER_SLIDES_INITIAL_POSITION;
     /***************** 3. Arm *****************/
 
     //private final static double ARM_POWER = 0.5;
@@ -87,22 +90,33 @@ public class MecanumTeleOp extends LinearOpMode {
     private final static int ARM_LOWER_LIMIT = -1400;
     private final static int ARM_MISUMI_RETRACT_THRESHOLD_L = -1100;
     private final static int ARM_WRIST_RETRACT_THRESHOLD_L = -900;
-
+    int armPosition = ARM_INITIAL_POSITION;
     /***************** 4. Wrist *****************/
     private final static double WRIST_STEP = 0.02;
-    private final static double WRIST_UP = 0;
+    private final static double WRIST_UP = 0.38;
     private final static double WRIST_DOWN = 1;
+    double wristPosition = WRIST_DOWN; // default position is down
+    Servo wristServo;
 
     /***************** 5. Claw Intake *****************/
     private final static int CLAW_INITIAL_STATE = 0;
     private final static double CLOCKWISE_POWER = -1.0;
     private final static double COUNTER_CLOCKWISE_POWER = 1.0;
+    // Intake state:
+    // 0: NotOutake
+    int clawState = CLAW_INITIAL_STATE;
+    //int intakedirection = 0;
+    CRServo clawServoR;
+    CRServo clawServoL;
 
     /***************** 6. MiSUMi Slides *****************/
     private final static double MISUMI_STEP_RATIO_1 = 0.1; // CY defines it
     private final static double MISUMI_EXTEND_LIMIT_R = 0.35;
     private final static double MISUMI_RETRACT_LIMIT_R = 0;
     private final static double MISUMI_STEP_RATIO_2 = MISUMI_EXTEND_LIMIT_R/1; // CC defines it
+    Servo extendServoR;
+    Servo extendServoL;
+    double slideExtendR = MISUMI_RETRACT_LIMIT_R;
 
     /***************** 7. Lead Screw *****************/
     private final static double LEAD_SCREW_POWER = 0.7;
@@ -112,12 +126,19 @@ public class MecanumTeleOp extends LinearOpMode {
     private final static int LEAD_SCREW_UPPER_LIMIT = 34000;
     private final static int LEAD_SCREW_LOWER_LIMIT = 0;
     private final static int LEAD_SCREW_OFF_THRESHOLD = 300;
+
+    DcMotor LSMotorR;
+    //DcMotor LSMotorL = hardwareMap.dcMotor.get("LSMotorL");
+    int LSPositionL = LEAD_SCREW_INITIAL_POSITION;
+    int LSPositionR = LEAD_SCREW_INITIAL_POSITION;
+    int LSState = 0;
     /***************** 8. Color Sensor *****************/
     public static boolean TEAM_COLOR_RED = false; // 224, 18, 76, 154
     private final static int BLUE_HUE = 224;
     private final static int RED_HUE = 18;
     private final static int YELLOW_HUE = 76;
     private final static int NO_SAMPLE_HUE = 154;
+    ColorSensor colorSensor;
     /***************** 9. LED *****************/
     RevBlinkinLedDriver blinkinLedDriver;
     private final static RevBlinkinLedDriver.BlinkinPattern DEFAULT_PATTERN = RevBlinkinLedDriver.BlinkinPattern.GRAY;
@@ -157,15 +178,15 @@ public class MecanumTeleOp extends LinearOpMode {
     }
     /***************** Preset Buttons *****************/
     public static double INTAKE_PRESET_WRIST_POS = 0.52;
-    public static int INTAKE_PRESET_ARM_POS = -1350;
-    public static int OUTTAKE_PRESET_HIGH_BASKET = 3433;
-    public static int OUTTAKE_PRESET_LOW_BASKET = 950;
+    public static int INTAKE_PRESET_ARM_POS = -1250;
+    public static int OUTTAKE_PRESET_HIGH_BASKET_VIPER_POS = 3433;
+    public static int OUTTAKE_PRESET_LOW_BASKET_VIPER_POS = 950;
     public static double OUTTAKE_PRESET_WRIST_POS = 0.38;
     public static int OUTTAKE_PRESET_ARM_POS = 350;
     public static double OUTTAKE_PRESET_CHAMBER_WRIST_POS = 0.4;
-    public static int OUTTAKE_PRESET_HIGH_CHAMBER_1 = 800;
-    public static int OUTTAKE_PRESET_HIGH_CHAMBER_2 = 766;
-    public static int LS_ABOVE_LOWER_RUNG = 38000;
+    public static int OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_1 = 800;
+    public static int OUTTAKE_PRESET_CHAMBER_VIPER_VIPER_1 = 766;
+    public static int LS_ABOVE_LOWER_RUNG = 34000;
     public static int LS_LOWER_RUNG = 8000;
 
     private class DriveThread extends Thread
@@ -415,48 +436,35 @@ public class MecanumTeleOp extends LinearOpMode {
         driveThread.start();
 
         /***************** 2. Viper Slides *****************/
-        DcMotor slideMotorR = hardwareMap.dcMotor.get("SlideMotorR");
-        DcMotor slideMotorL = hardwareMap.dcMotor.get("SlideMotorL");
+        slideMotorR = hardwareMap.dcMotor.get("SlideMotorR");
+        slideMotorL = hardwareMap.dcMotor.get("SlideMotorL");
         slideMotorL.setDirection(DcMotorSimple.Direction.REVERSE);
         slideMotorR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         slideMotorL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        int slidePositionR = VIPER_SLIDES_INITIAL_POSITION;
-        int slidePositionL = VIPER_SLIDES_INITIAL_POSITION;
 
         /***************** 3. Arm *****************/
         DcMotor armMotor = hardwareMap.dcMotor.get("ArmMotor");
         armMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        int armPosition = ARM_INITIAL_POSITION;
+
         /***************** 4. Wrist *****************/
-        double wristPosition = WRIST_DOWN; // default position is down
-        Servo wristServo = hardwareMap.servo.get("WristServo");
+        wristServo = hardwareMap.servo.get("WristServo");
         //wristServo.setPosition(wristPosition);
 
         ///*************** 5. Claw Intake
-        CRServo clawServoR = hardwareMap.crservo.get("ClawServoR");
-        CRServo clawServoL = hardwareMap.crservo.get("ClawServoL");
+        clawServoR = hardwareMap.crservo.get("ClawServoR");
+        clawServoL = hardwareMap.crservo.get("ClawServoL");
         clawServoR.setPower(0);
         clawServoL.setPower(0);
 
-        // Intake state:
-        // 0: NotOutake
-        int clawState = CLAW_INITIAL_STATE;
-        //int intakedirection = 0;
-
         /***************** 6. MiSUMi Slides *****************/
-        Servo extendServoR = hardwareMap.servo.get("ExtendServoR");
-        Servo extendServoL = hardwareMap.servo.get("ExtendServoL");
-        double slideExtendR = MISUMI_RETRACT_LIMIT_R;
+        extendServoR = hardwareMap.servo.get("ExtendServoR");
+        extendServoL = hardwareMap.servo.get("ExtendServoL");
         //extendServoR.setPosition(slideExtendR);
         //extendServoL.setPosition(-slideExtendR+1);
 
         /***************** 7. Lead Screw *****************/
-        DcMotor LSMotorR = hardwareMap.dcMotor.get("LSMotorR");
-        //DcMotor LSMotorL = hardwareMap.dcMotor.get("LSMotorL");
-        int LSPositionL = LEAD_SCREW_INITIAL_POSITION;
-        int LSPositionR = LEAD_SCREW_INITIAL_POSITION;
-        int LSState = 0;
+        LSMotorR = hardwareMap.dcMotor.get("LSMotorR");
 
         /***************** 8. Color Sensor *****************/
         // hsvValues is an array that will hold the hue, saturation, and value information.
@@ -466,9 +474,9 @@ public class MecanumTeleOp extends LinearOpMode {
         final float values[] = hsvValues;
 
         // get a reference to our ColorSensor object.
-        ColorSensor colorSensor = hardwareMap.get(ColorSensor.class, "ColorSensor");
+        colorSensor = hardwareMap.get(ColorSensor.class, "ColorSensor");
 
-        /***************** 8. LED *****************/
+        /***************** 9. LED *****************/
         displayKind = DisplayKind.MANUAL;
         blinkinLedDriver = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
         setBlinkinLEDDisplayPattern(DEFAULT_PATTERN);
@@ -625,8 +633,8 @@ public class MecanumTeleOp extends LinearOpMode {
             //armMotor.setPower(-gamepad2.right_stick_y/4);
             armPosition=armMotor.getCurrentPosition();
             if ((gamepad2.right_stick_y < 0)  &&
-            ((slidePositionR<OUTTAKE_PRESET_HIGH_CHAMBER_1 && armPosition <= ARM_INITIAL_POSITION)
-            ||(slidePositionR>=OUTTAKE_PRESET_HIGH_CHAMBER_1 && armPosition <= ARM_UPPER_LIMIT))) { // joystick above the origin; arm raises up
+            ((slidePositionR<OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_1 && armPosition <= ARM_INITIAL_POSITION)
+            ||(slidePositionR>=OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_1 && armPosition <= ARM_UPPER_LIMIT))) { // joystick above the origin; arm raises up
                 // retracts misumi slides when the arm rotates up and leaves the floor (at -1100 )
                 if (armPosition<=ARM_MISUMI_RETRACT_THRESHOLD_L+200 && armPosition>=ARM_MISUMI_RETRACT_THRESHOLD_L){
                     extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
@@ -870,17 +878,24 @@ public class MecanumTeleOp extends LinearOpMode {
                 LSCurrState = gamepad2.ps;
                 if (LSCurrState && !LSPrevState) {
                     if (LSState == 0) {
-                        LSState = 1;
+                        LSState = 1; // above rung
                     } else if (LSState == 1) {
-                        LSState = 2;
+                        LSState = 2; // below rung
                     } else if (LSState == 2) {
-                        LSState = 3;
-                    } else {
-                        LSState = 0;
+                        LSState = 3; // above rung
+                    } else if (LSState == 3) {
+                        LSState = 4; // default position
+                    } else if (LSState == 4) {
+                        LSState = 5; // lose power
+                    } else if (LSState == 5) {
+                        LSState = 1; // above rung
                     }
                 }
                 LSPrevState = LSCurrState;
-                if (LSState == 0) {//default position
+                if (LSState == 5) {// lose power
+                    LSMotorR.setPower(0);
+                    LSMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                } else if (LSState == 4) {//default position
                     LSMotorR.setTargetPosition(LEAD_SCREW_OFF_THRESHOLD);
                     //LSMotorL.setTargetPosition(LEAD_SCREW_OFF_THRESHOLD);
                     LSMotorR.setPower(LEAD_SCREW_POWER_PRESET);
@@ -964,12 +979,19 @@ public class MecanumTeleOp extends LinearOpMode {
                 extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
                 extendServoL.setPosition(-MISUMI_RETRACT_LIMIT_R+1);
 
-                slideMotorR.setTargetPosition(VIPER_SLIDES_OFF_THRESHOLD);
-                slideMotorL.setTargetPosition(VIPER_SLIDES_OFF_THRESHOLD);
+                slideMotorR.setTargetPosition(VIPER_SLIDES_INITIAL_POSITION);
+                slideMotorL.setTargetPosition(VIPER_SLIDES_INITIAL_POSITION);
                 slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
                 slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
+
+                runtime.reset();
+                while (opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy() && (runtime.milliseconds() < 250));
+                slideMotorR.setPower(0);
+                slideMotorL.setPower(0);
+                slideMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                slideMotorL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
                 armMotor.setTargetPosition(INTAKE_PRESET_ARM_POS);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -985,15 +1007,15 @@ public class MecanumTeleOp extends LinearOpMode {
                 armMotor.setPower(ARM_POWER_PRESET);
 
                 if (gamepad2.y) {
-                    slideMotorR.setTargetPosition(OUTTAKE_PRESET_HIGH_BASKET); //10300
-                    slideMotorL.setTargetPosition(OUTTAKE_PRESET_HIGH_BASKET); //10300
+                    slideMotorR.setTargetPosition(OUTTAKE_PRESET_HIGH_BASKET_VIPER_POS); //10300
+                    slideMotorL.setTargetPosition(OUTTAKE_PRESET_HIGH_BASKET_VIPER_POS); //10300
                     slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET);
                     slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET);
                 } else if (gamepad2.a) {
-                    slideMotorR.setTargetPosition(OUTTAKE_PRESET_LOW_BASKET); //2850
-                    slideMotorL.setTargetPosition(OUTTAKE_PRESET_LOW_BASKET); //2850
+                    slideMotorR.setTargetPosition(OUTTAKE_PRESET_LOW_BASKET_VIPER_POS); //2850
+                    slideMotorL.setTargetPosition(OUTTAKE_PRESET_LOW_BASKET_VIPER_POS); //2850
                     slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET);
@@ -1020,15 +1042,15 @@ public class MecanumTeleOp extends LinearOpMode {
                 armMotor.setPower(ARM_POWER_PRESET);
 
                 if (gamepad2.dpad_right) {
-                    slideMotorR.setTargetPosition(OUTTAKE_PRESET_HIGH_CHAMBER_1); //2400
-                    slideMotorL.setTargetPosition(OUTTAKE_PRESET_HIGH_CHAMBER_1); //2400
+                    slideMotorR.setTargetPosition(OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_1); //2400
+                    slideMotorL.setTargetPosition(OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_1); //2400
                     slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET);
                     slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET);
                 } else if (gamepad2.dpad_left) {
-                    slideMotorR.setTargetPosition(OUTTAKE_PRESET_HIGH_CHAMBER_2); //2300
-                    slideMotorL.setTargetPosition(OUTTAKE_PRESET_HIGH_CHAMBER_2); //2300
+                    slideMotorR.setTargetPosition(OUTTAKE_PRESET_CHAMBER_VIPER_VIPER_1); //2300
+                    slideMotorL.setTargetPosition(OUTTAKE_PRESET_CHAMBER_VIPER_VIPER_1); //2300
                 }
 
                 runtime.reset();
