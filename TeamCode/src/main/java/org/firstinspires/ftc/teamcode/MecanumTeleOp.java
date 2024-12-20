@@ -118,7 +118,7 @@ public class MecanumTeleOp extends LinearOpMode {
 
     /***************** 6. MiSUMi Slides *****************/
     private final static double MISUMI_STEP_RATIO_1 = 0.1; // CY defines it
-    private final static double MISUMI_EXTEND_LIMIT_R = 0.35;
+    private final static double MISUMI_EXTEND_LIMIT_R = 0.3;
     private final static double MISUMI_RETRACT_LIMIT_R = 0;
     private final static double MISUMI_STEP_RATIO_2 = MISUMI_EXTEND_LIMIT_R/1; // CC defines it
     Servo extendServoR;
@@ -186,8 +186,8 @@ public class MecanumTeleOp extends LinearOpMode {
     /***************** Preset Buttons *****************/
     public static double INTAKE_PRESET_WRIST_POS = 0.52;
     public static int INTAKE_PRESET_ARM_POS = -1400;
-    public static int OUTTAKE_PRESET_HIGH_BASKET_VIPER_POS = 3600;
-    public static int OUTTAKE_PRESET_LOW_BASKET_VIPER_POS = 950;
+    public static int OUTTAKE_PRESET_HIGH_BASKET_VIPER_POS = 4000;
+    public static int OUTTAKE_PRESET_LOW_BASKET_VIPER_POS = 2000;
     public static double OUTTAKE_PRESET_WRIST_POS = 0.38;
     public static int OUTTAKE_PRESET_ARM_POS = 350;
     public static double OUTTAKE_PRESET_CHAMBER_WRIST_POS = 0.4;
@@ -517,7 +517,10 @@ public class MecanumTeleOp extends LinearOpMode {
             // update previous state variable.
             back2PrevState = back2CurrState;
             if (debugMode) {
-                telemetry.addData("carlos loves katelyn",0);
+                telemetry.addData("carlos loves katelyn",true);
+            }
+            else {
+                telemetry.addData("carlos loves katelyn", false);
             }
 
             back1CurrState = gamepad1.back;

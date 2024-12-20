@@ -112,7 +112,7 @@ public class MecanumRobot {
 
     /***************** 6. MiSUMi Slides *****************/
     private final static double MISUMI_STEP_RATIO_1 = 0.1; // CY defines it
-    private final static double MISUMI_EXTEND_LIMIT_R = 0.35;
+    private final static double MISUMI_EXTEND_LIMIT_R = 0.3;
     private final static double MISUMI_RETRACT_LIMIT_R = 0;
     private final static double MISUMI_STEP_RATIO_2 = MISUMI_EXTEND_LIMIT_R/1; // CC defines it
     Servo extendServoR;
@@ -180,8 +180,8 @@ public class MecanumRobot {
     /***************** Preset Buttons *****************/
     public static double INTAKE_PRESET_WRIST_POS = 0.52;
     public static int INTAKE_PRESET_ARM_POS = -1400;
-    public static int OUTTAKE_PRESET_HIGH_BASKET_VIPER_POS = 3600;
-    public static int OUTTAKE_PRESET_LOW_BASKET_VIPER_POS = 950;
+    public static int OUTTAKE_PRESET_HIGH_BASKET_VIPER_POS = 4000;
+    public static int OUTTAKE_PRESET_LOW_BASKET_VIPER_POS = 2000;
     public static double OUTTAKE_PRESET_WRIST_POS = 0.38;
     public static int OUTTAKE_PRESET_ARM_POS = 350;
     public static double OUTTAKE_PRESET_CHAMBER_WRIST_POS = 0.4;
@@ -582,5 +582,31 @@ public class MecanumRobot {
         armMotor.setTargetPosition(OUTTAKE_PRESET_ARM_POS);
         armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         armMotor.setPower(ARM_POWER_PRESET);
+    }
+    public void reset() {
+        slideMotorR.setTargetPosition(VIPER_SLIDES_OFF_THRESHOLD);
+        slideMotorL.setTargetPosition(VIPER_SLIDES_OFF_THRESHOLD);
+        slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
+        slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
+        slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        clawState = 0;
+        clawServoR.setPower(0);
+        clawServoL.setPower(0);
+        extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
+        extendServoL.setPosition(-MISUMI_RETRACT_LIMIT_R+1);
+        wristServo.setPosition(WRIST_DOWN);
+        armMotor.setTargetPosition(ARM_INITIAL_POSITION);
+        armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        armMotor.setPower(ARM_POWER_PRESET);
+        while (armMotor.isBusy()) myOpMode.idle();
+        armMotor.setPower(0);
+        armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        runtime.reset();
+        while (myOpMode.opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy() && (runtime.milliseconds() < 2500)) myOpMode.idle();
+        slideMotorR.setPower(0);
+        slideMotorL.setPower(0);
+        slideMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        slideMotorL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 }

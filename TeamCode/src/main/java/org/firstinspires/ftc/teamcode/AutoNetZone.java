@@ -39,6 +39,7 @@ public class AutoNetZone extends LinearOpMode {
     private ElapsedTime runtime = new ElapsedTime();
     public static int ACTION_1_TIMER = 400;
     public static int ACTION_2_TIMER = 700;
+    public static int ACTION_3_TIMER = 1500;
 
 
     /***************** 0. IMU *****************/
@@ -386,8 +387,20 @@ public class AutoNetZone extends LinearOpMode {
         // ****** Action [4] ******
 
         robot.highBasket();
+        runtime.reset();
+        while (opModeIsActive() && (runtime.milliseconds() < ACTION_3_TIMER)) {
+            //telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.milliseconds());
+            //telemetry.update();
+        }
 
-        robot.move(0,0,0,0);
+        robot.reset();
 
+        robot.rotate(45, 0.5);
+
+        robot.move(-1, 0, 0, 0.5);
+        while (opModeIsActive() && (runtime.milliseconds() < 1500));
+
+        robot.move(0, 1, 0, 0.5);
+        while (opModeIsActive() && (runtime.milliseconds() < 500));
     }
 }
