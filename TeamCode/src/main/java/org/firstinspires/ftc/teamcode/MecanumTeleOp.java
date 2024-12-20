@@ -1016,9 +1016,13 @@ public class MecanumTeleOp extends LinearOpMode {
                 slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
 
                 runtime.reset();
-                while (opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy() && (runtime.milliseconds() < 250)) idle();
+                while (opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy()
+                        && (runtime.milliseconds() < 250)
+                        && ((DistanceSensor) viperSlidesSensor).getDistance(DistanceUnit.CM) >= 3.0) idle();
                 slideMotorR.setPower(0);
                 slideMotorL.setPower(0);
+                slideMotorR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                slideMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 slideMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                 slideMotorL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
@@ -1040,6 +1044,7 @@ public class MecanumTeleOp extends LinearOpMode {
                     telemetry.addData("viper slides","reset");
                 }
             }
+
             if (gamepad2.y || gamepad2.a) { // outtake at high or low basket
                 armMotor.setTargetPosition(ARM_INITIAL_POSITION);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -1075,6 +1080,7 @@ public class MecanumTeleOp extends LinearOpMode {
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 armMotor.setPower(ARM_POWER_PRESET);
             }
+
             if (gamepad2.dpad_right || gamepad2.dpad_left) { //specimen outtake
 
                 armMotor.setTargetPosition(ARM_INITIAL_POSITION);
@@ -1140,21 +1146,16 @@ public class MecanumTeleOp extends LinearOpMode {
                 ///// After the viper slides reaches position, switch back to RUN_WITHOUT_ENCODER mode
 
                 runtime.reset();
-                while (opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy() && (runtime.milliseconds() < 2500)) idle();
+                while (opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy()
+                        && (runtime.milliseconds() < 2500)
+                        && ((DistanceSensor) viperSlidesSensor).getDistance(DistanceUnit.CM) >= 3.0) idle();
                 slideMotorR.setPower(0);
                 slideMotorL.setPower(0);
+                slideMotorR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                slideMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 slideMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                 slideMotorL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-                if (((DistanceSensor) viperSlidesSensor).getDistance(DistanceUnit.CM) <= 4.0) {
-                    slideMotorR.setPower(0);
-                    slideMotorL.setPower(0);
-                    slideMotorR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    slideMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    slideMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                    slideMotorL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                    telemetry.addData("viper slides","reset");
-                }
+                telemetry.addData("viper slides", "reset");
             }
 
             if (viperSlidesSensor instanceof DistanceSensor) {
