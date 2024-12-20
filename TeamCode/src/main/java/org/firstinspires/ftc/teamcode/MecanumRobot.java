@@ -408,7 +408,7 @@ public class MecanumRobot {
         double absDiff = Math.abs(diff);
         double sign;
         double power2;
-
+/*
         // Tries to move at least 2 degree to get off 0
         while (myOpMode.opModeIsActive() && Math.abs(diff)>=absDiff-2) {
             sign = diff / Math.abs(diff);
@@ -441,9 +441,9 @@ public class MecanumRobot {
             myOpMode.telemetry.addData("diff", diff);
             myOpMode.telemetry.update();
         }
-
-        //while (Math.abs(diff)>2) { // while there is more than 2 degree to move
-        do {
+*/
+        while (Math.abs(diff)>2) { // while there is more than 2 degree to move
+        //do {
             //power2 = pidRotate.performPID(getAngle());
             power2 = power;
             sign = diff / Math.abs(diff);
@@ -474,7 +474,7 @@ public class MecanumRobot {
             myOpMode.telemetry.addData("current degrees", currentAngle);
             myOpMode.telemetry.addData("diff", diff);
             myOpMode.telemetry.update();
-        } while (myOpMode.opModeIsActive() && Math.abs(diff)>=absDiff-2);
+        } //while (myOpMode.opModeIsActive() && Math.abs(diff)>=absDiff-2);
         //while (myOpMode.opModeIsActive() && !pidRotate.onTarget());
 
         frontLeftMotor.setPower(0); //brake
@@ -558,23 +558,14 @@ public class MecanumRobot {
         }
     }
     public void highBasket() {
-        armMotor.setTargetPosition(ARM_INITIAL_POSITION);
-        armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        armMotor.setPower(ARM_POWER_PRESET);
         slideMotorR.setTargetPosition(OUTTAKE_PRESET_HIGH_BASKET_VIPER_POS); //10300
         slideMotorL.setTargetPosition(OUTTAKE_PRESET_HIGH_BASKET_VIPER_POS); //10300
         slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET);
         slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET);
-        slideMotorR.setTargetPosition(OUTTAKE_PRESET_LOW_BASKET_VIPER_POS); //2850
-        slideMotorL.setTargetPosition(OUTTAKE_PRESET_LOW_BASKET_VIPER_POS); //2850
-        slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET);
-        slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET);
         runtime.reset();
-        while (myOpMode.opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy() && (runtime.milliseconds() < 500))
+        while (myOpMode.opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy() && (runtime.milliseconds() < 1000))
             myOpMode.idle();
         extendServoR.setPosition(MISUMI_EXTEND_LIMIT_R);
         extendServoL.setPosition(1 - MISUMI_EXTEND_LIMIT_R);
@@ -582,6 +573,10 @@ public class MecanumRobot {
         armMotor.setTargetPosition(OUTTAKE_PRESET_ARM_POS);
         armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         armMotor.setPower(ARM_POWER_PRESET);
+    }
+    public void outtake() {
+        clawServoR.setPower(CLOCKWISE_POWER);
+        clawServoL.setPower(COUNTER_CLOCKWISE_POWER);
     }
     public void reset() {
         slideMotorR.setTargetPosition(VIPER_SLIDES_OFF_THRESHOLD);
@@ -608,5 +603,8 @@ public class MecanumRobot {
         slideMotorL.setPower(0);
         slideMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         slideMotorL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    }
+    public void autoAscend1() {
+
     }
 }

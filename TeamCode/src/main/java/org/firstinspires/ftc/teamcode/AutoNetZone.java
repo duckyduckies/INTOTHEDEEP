@@ -39,9 +39,10 @@ public class AutoNetZone extends LinearOpMode {
     private ElapsedTime runtime = new ElapsedTime();
     public static int ACTION_1_TIMER = 400;
     public static int ACTION_2_TIMER = 700;
-    public static int ACTION_3_TIMER = 1500;
-
-
+    public static int ACTION_3_TIMER = 2500;
+    public static int ACTION_4_TIMER = 500;
+    public static int ACTION_5_TIMER = 1500;
+    public static int ACTION_6_TIMER = 500;
     /***************** 0. IMU *****************/
 /*
     private IMU imu;
@@ -280,8 +281,8 @@ public class AutoNetZone extends LinearOpMode {
     */
 
     FtcDashboard dashboard;
-    public static int TARGET_ANGLE = 45;
-    public static double TURN_POWER = 0.2;
+    public static int TARGET_ANGLE = -45;
+    public static double TURN_POWER = 0.5;
 
     @Override
     public void runOpMode() {
@@ -349,13 +350,13 @@ public class AutoNetZone extends LinearOpMode {
 
         // ****** PID Experiment on rotation *******
 /*
-        RotateClockwise(TARGET_ANGLE, TURN_POWER);
+        robot.rotate(TARGET_ANGLE, TURN_POWER);
         sleep(3000);
-        RotateClockwise(TARGET_ANGLE+90, TURN_POWER);
+        robot.rotate(TARGET_ANGLE-45, TURN_POWER);
         sleep(3000);
-        RotateClockwise(TARGET_ANGLE+180, TURN_POWER);
+        robot.rotate(TARGET_ANGLE-90, TURN_POWER);
         sleep(3000);
-        RotateClockwise(TARGET_ANGLE+270, TURN_POWER);
+        robot.rotate(TARGET_ANGLE-135, TURN_POWER);
         sleep(3000);
 */
 
@@ -393,14 +394,23 @@ public class AutoNetZone extends LinearOpMode {
             //telemetry.update();
         }
 
+        robot.outtake();
+        runtime.reset();
+        while (opModeIsActive() && (runtime.milliseconds() < ACTION_4_TIMER)) {
+            //telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.milliseconds());
+            //telemetry.update();
+        }
+
         robot.reset();
 
         robot.rotate(45, 0.5);
 
         robot.move(-1, 0, 0, 0.5);
-        while (opModeIsActive() && (runtime.milliseconds() < 1500));
+        runtime.reset();
+        while (opModeIsActive() && (runtime.milliseconds() < ACTION_5_TIMER));
 
         robot.move(0, 1, 0, 0.5);
-        while (opModeIsActive() && (runtime.milliseconds() < 500));
+        runtime.reset();
+        while (opModeIsActive() && (runtime.milliseconds() < ACTION_6_TIMER));
     }
 }

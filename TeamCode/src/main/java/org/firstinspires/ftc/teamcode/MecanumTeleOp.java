@@ -140,12 +140,13 @@ public class MecanumTeleOp extends LinearOpMode {
     int LSPositionR = LEAD_SCREW_INITIAL_POSITION;
     int LSState = 0;
     /***************** 8. Color Sensor *****************/
-    public static boolean TEAM_COLOR_RED = false; // 224, 18, 76, 154
+    public static boolean TEAM_COLOR_RED = true; // 224, 18, 76, 154
     private final static int BLUE_HUE = 224;
     private final static int RED_HUE = 18;
     private final static int YELLOW_HUE = 76;
     private final static int NO_SAMPLE_HUE = 154;
     ColorSensor colorSensor;
+    ColorSensor viperSlidesSensor;
     /***************** 9. LED *****************/
     RevBlinkinLedDriver blinkinLedDriver;
     private final static RevBlinkinLedDriver.BlinkinPattern DEFAULT_PATTERN = RevBlinkinLedDriver.BlinkinPattern.GRAY;
@@ -482,6 +483,7 @@ public class MecanumTeleOp extends LinearOpMode {
 
         // get a reference to our ColorSensor object.
         colorSensor = hardwareMap.get(ColorSensor.class, "ColorSensor");
+        viperSlidesSensor = hardwareMap.get(ColorSensor.class, "ViperSlidesSensor");
 
         /***************** 9. LED *****************/
         displayKind = DisplayKind.MANUAL;
@@ -521,6 +523,21 @@ public class MecanumTeleOp extends LinearOpMode {
             }
             else {
                 telemetry.addData("carlos loves katelyn", false);
+            }
+
+            back1CurrState = gamepad1.back;
+            if (back1CurrState && !back1PrevState) {
+                leadScrewDebug = !leadScrewDebug;
+                if (leadScrewDebug) {
+                    LSMotorR.setPower(0);
+                    //LSMotorL.setPower(0);
+                    LSMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                    //LSMotorL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                }
+            }
+            back1PrevState = back1CurrState;
+            if (leadScrewDebug) {
+                telemetry.addData("Lead Screw Debug Mode enabled", 0);
             }
 
             back1CurrState = gamepad1.back;
@@ -600,12 +617,14 @@ public class MecanumTeleOp extends LinearOpMode {
                 slideMotorR.setPower(VIPER_SLIDES_POWER_MANUAL);
                 slideMotorL.setPower(VIPER_SLIDES_POWER_MANUAL);
             } else if (gamepad2.left_stick_y > 0 && slidePositionR > VIPER_SLIDES_LOWER_LIMIT) {
+                /*
                 if (slidePositionR < VIPER_SLIDES_OFF_THRESHOLD) { //turns off viper slides to prevent burning
                     slideMotorR.setPower(0);
                     slideMotorL.setPower(0);
                     slideMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                     slideMotorL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                 } else {
+                 */
                     //slideMotor.setPower(-gamepad2.left_stick_y);
                     slidePositionR = slidePositionR - VIPER_SLIDES_STEP;
                     slideMotorR.setTargetPosition(slidePositionR);
@@ -614,7 +633,7 @@ public class MecanumTeleOp extends LinearOpMode {
                     slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     slideMotorR.setPower(VIPER_SLIDES_POWER_MANUAL);
                     slideMotorL.setPower(VIPER_SLIDES_POWER_MANUAL);
-                }
+
             }
             /*
             if (gamepad1.ps){//turns off viper slides
@@ -1010,6 +1029,16 @@ public class MecanumTeleOp extends LinearOpMode {
                 clawServoR.setPower(COUNTER_CLOCKWISE_POWER);
                 clawServoL.setPower(CLOCKWISE_POWER);
                 clawState = 1; // intake
+
+                if (((DistanceSensor) viperSlidesSensor).getDistance(DistanceUnit.CM) <= 4.0) {
+                    slideMotorR.setPower(0);
+                    slideMotorL.setPower(0);
+                    slideMotorR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    slideMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    slideMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                    slideMotorL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                    telemetry.addData("viper slides","reset");
+                }
             }
             if (gamepad2.y || gamepad2.a) { // outtake at high or low basket
                 armMotor.setTargetPosition(ARM_INITIAL_POSITION);
@@ -1116,7 +1145,23 @@ public class MecanumTeleOp extends LinearOpMode {
                 slideMotorL.setPower(0);
                 slideMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                 slideMotorL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+                if (((DistanceSensor) viperSlidesSensor).getDistance(DistanceUnit.CM) <= 4.0) {
+                    slideMotorR.setPower(0);
+                    slideMotorL.setPower(0);
+                    slideMotorR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    slideMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    slideMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                    slideMotorL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                    telemetry.addData("viper slides","reset");
+                }
             }
+
+            if (viperSlidesSensor instanceof DistanceSensor) {
+                telemetry.addData("Distance (cm)", "%.3f", ((DistanceSensor) viperSlidesSensor).getDistance(DistanceUnit.CM));
+            }
+
+
             telemetry.update();
             sleep(20);
         } // end of while loop
