@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import android.graphics.Color;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -37,9 +37,9 @@ import com.acmerobotics.dashboard.config.Config;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-
 @Config
 public class MecanumRobot {
+
     private ElapsedTime runtime = new ElapsedTime();
     /* Declare OpMode members. */
     private LinearOpMode myOpMode = null;   // gain access to methods in the calling OpMode.
@@ -605,6 +605,74 @@ public class MecanumRobot {
         slideMotorL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
     public void autoAscend1() {
+    }
+    public void clawintakefromfloor(){
+        wristServo.setPosition(INTAKE_PRESET_WRIST_POS);
 
+        armMotor.setTargetPosition(ARM_INITIAL_POSITION);
+        armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        armMotor.setPower(ARM_POWER_PRESET);
+
+        extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
+        extendServoL.setPosition(-MISUMI_RETRACT_LIMIT_R+1);
+
+        slideMotorR.setTargetPosition(VIPER_SLIDES_INITIAL_POSITION);
+        slideMotorL.setTargetPosition(VIPER_SLIDES_INITIAL_POSITION);
+        slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
+        slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
+
+        runtime.reset();
+        while (myOpMode.opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy()
+                && (runtime.milliseconds() < 250)
+                && ((DistanceSensor) viperSlidesSensor).getDistance(DistanceUnit.CM) >= 3.0) idle();
+        slideMotorR.setPower(0);
+        slideMotorL.setPower(0);
+        slideMotorR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slideMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slideMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        slideMotorL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        armMotor.setTargetPosition(INTAKE_PRESET_ARM_POS);
+        armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        armMotor.setPower(ARM_POWER_PRESET);
+
+        clawServoR.setPower(COUNTER_CLOCKWISE_POWER);
+        clawServoL.setPower(CLOCKWISE_POWER);
+        clawState = 1; // intake
+    }
+    public void clawouttake (){
+        wristServo.setPosition(OUTTAKE_PRESET_WRIST_POS);
+    }
+    public void highchamberspecimenouttake () {
+        armMotor.setTargetPosition(ARM_INITIAL_POSITION);
+        armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        armMotor.setPower(ARM_POWER_PRESET);
+        slideMotorR.setTargetPosition(OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_1); //2400
+        slideMotorL.setTargetPosition(OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_1); //2400
+        slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET);
+        slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET);
+
+        while (myOpMode.opModeIsActive() && (runtime.milliseconds() < 500)) {
+            //telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.milliseconds());
+            //.update();
+        }
+
+    }
+    public void highchamberspecimenouttake2(){
+        slideMotorR.setTargetPosition(OUTTAKE_PRESET_CHAMBER_VIPER_VIPER_1); //2300
+        slideMotorL.setTargetPosition(OUTTAKE_PRESET_CHAMBER_VIPER_VIPER_1); //2300
+        slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET);
+        slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET);
+
+        while (myOpMode.opModeIsActive() && (runtime.milliseconds() < 500)) {
+            //telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.milliseconds());
+            //.update();
+        }
     }
 }
