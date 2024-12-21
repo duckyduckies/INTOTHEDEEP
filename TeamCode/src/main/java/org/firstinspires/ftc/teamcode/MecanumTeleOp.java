@@ -187,8 +187,8 @@ public class MecanumTeleOp extends LinearOpMode {
         }
     }
     /***************** Preset Buttons *****************/
-    public static double INTAKE_PRESET_WRIST_POS = 0.52;
-    public static int INTAKE_PRESET_ARM_POS = -1400;
+    public static double INTAKE_PRESET_WRIST_POS = 0.50;
+    public static int INTAKE_PRESET_ARM_POS = -1200;
     public static int OUTTAKE_PRESET_HIGH_BASKET_VIPER_POS = 4000;
     public static int OUTTAKE_PRESET_LOW_BASKET_VIPER_POS = 2000;
     public static double OUTTAKE_PRESET_WRIST_POS = 0.38;
@@ -216,6 +216,7 @@ public class MecanumTeleOp extends LinearOpMode {
          * @param rx
          * @param powerScale
          */
+        float brk = 0;
         public void move(double x, double y, double rx, double powerScale) {
             double denominator,frontLeftPower,backLeftPower,frontRightPower,backRightPower;
             double frontLeftPower_mod,backLeftPower_mod,frontRightPower_mod,backRightPower_mod;
@@ -264,22 +265,9 @@ public class MecanumTeleOp extends LinearOpMode {
                     x = gamepad1.left_stick_x; // Remember, Y stick value is reversed
                     y = -gamepad1.left_stick_y; // Counteract imperfect strafing
                     rx = gamepad1.right_stick_x;
+                    brk = gamepad1.right_trigger;
 
-                    move(x,y,rx,1);
 
-                    if (gamepad1.dpad_up) {
-                        move(0, 1,0,DPAD_FORWARD_BACKWARD_POWER_RATIO);
-                    }
-                    else if (gamepad1.dpad_down) {
-                        move(0, -1,0,DPAD_FORWARD_BACKWARD_POWER_RATIO);
-                    }
-                    else if (gamepad1.dpad_right) {
-                        move(1, 0,0,DPAD_SIDEWAY_POWER_RATIO);
-                    }
-                    else if (gamepad1.dpad_left) {
-                        move(-1, 0,0,DPAD_SIDEWAY_POWER_RATIO);
-                    }
-                    idle();
                 }
             }
             // interrupted means time to shutdown. note we can stop by detecting isInterrupted = true
@@ -306,6 +294,7 @@ public class MecanumTeleOp extends LinearOpMode {
          * @param rx
          * @param powerScale
          */
+
         public void move(double x, double y, double rx, double botHeading, double powerScale) {
             // Rotate the movement direction counter to the bot's rotation
             double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
@@ -326,6 +315,7 @@ public class MecanumTeleOp extends LinearOpMode {
             backLeftMotor.setPower(backLeftPower * powerScale);
             frontRightMotor.setPower(frontRightPower * powerScale);
             backRightMotor.setPower(backRightPower * powerScale);
+
 
             /*if (debugMode) {
                 telemetry.addData("frontLeftPower: ", frontLeftPower * powerScale);
@@ -1053,15 +1043,7 @@ public class MecanumTeleOp extends LinearOpMode {
                 clawServoL.setPower(CLOCKWISE_POWER);
                 clawState = 1; // intake
 
-                if (((DistanceSensor) viperSlidesSensor).getDistance(DistanceUnit.CM) <= 4.0) {
-                    slideMotorR.setPower(0);
-                    slideMotorL.setPower(0);
-                    slideMotorR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    slideMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    slideMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                    slideMotorL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                    telemetry.addData("viper slides","reset");
-                }
+
             }
 
             if (gamepad2.y || gamepad2.a) { // outtake at high or low basket
@@ -1136,7 +1118,7 @@ public class MecanumTeleOp extends LinearOpMode {
             // Drivetrain Moving Position
             if (/*gamepad1.ps && */gamepad2.x) {
                 //brake
-                slideMotorR.setTargetPosition(VIPER_SLIDES_OFF_THRESHOLD);
+                slideMotorR.setTargetPosition(VIPER_SLIDES_INITIAL_POSITION);
                 slideMotorL.setTargetPosition(VIPER_SLIDES_OFF_THRESHOLD);
                 slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
                 slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);

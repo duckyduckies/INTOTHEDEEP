@@ -64,6 +64,7 @@ public class MecanumRobot {
     DcMotor backLeftMotor;
     DcMotor frontRightMotor;
     DcMotor backRightMotor;
+    ColorSensor viperSlidesSensor;
 
     /***************** 2. Viper Slides *****************/ //28 inch,
     //private final static double VIPER_SLIDES_POWER = 0.75;
@@ -178,8 +179,8 @@ public class MecanumRobot {
         }
     }
     /***************** Preset Buttons *****************/
-    public static double INTAKE_PRESET_WRIST_POS = 0.52;
-    public static int INTAKE_PRESET_ARM_POS = -1400;
+    public static double INTAKE_PRESET_WRIST_POS = 0.50;
+    public static int INTAKE_PRESET_ARM_POS = -1300;
     public static int OUTTAKE_PRESET_HIGH_BASKET_VIPER_POS = 4000;
     public static int OUTTAKE_PRESET_LOW_BASKET_VIPER_POS = 2000;
     public static double OUTTAKE_PRESET_WRIST_POS = 0.38;
@@ -225,6 +226,8 @@ public class MecanumRobot {
         backLeftMotor = myOpMode.hardwareMap.dcMotor.get("backLeftMotor");
         frontRightMotor = myOpMode.hardwareMap.dcMotor.get("frontRightMotor");
         backRightMotor = myOpMode.hardwareMap.dcMotor.get("backRightMotor");
+        viperSlidesSensor = myOpMode.hardwareMap.colorSensor.get("viperSlidesSensor");
+
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         frontLeftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -236,6 +239,7 @@ public class MecanumRobot {
         /***************** 2. Viper Slides *****************/
         slideMotorR = myOpMode.hardwareMap.dcMotor.get("SlideMotorR");
         slideMotorL = myOpMode.hardwareMap.dcMotor.get("SlideMotorL");
+
         slideMotorL.setDirection(DcMotorSimple.Direction.REVERSE);
         slideMotorR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         slideMotorL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -626,7 +630,7 @@ public class MecanumRobot {
         runtime.reset();
         while (myOpMode.opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy()
                 && (runtime.milliseconds() < 250)
-                && ((DistanceSensor) viperSlidesSensor).getDistance(DistanceUnit.CM) >= 3.0) idle();
+                && ((DistanceSensor) viperSlidesSensor).getDistance(DistanceUnit.CM) >= 3.0) myOpMode.idle();
         slideMotorR.setPower(0);
         slideMotorL.setPower(0);
         slideMotorR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
