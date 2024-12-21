@@ -44,6 +44,8 @@ public class MecanumTeleOp extends LinearOpMode {
     private ElapsedTime runtime = new ElapsedTime();
     private boolean debugMode = true;
     private boolean leadScrewDebug = false;
+    private boolean touchpadCurrState = true;
+    private boolean touchpadPrevState = true;
     private boolean back2PrevState = true;
     private boolean back2CurrState = true;
     private boolean back1PrevState = false;
@@ -525,6 +527,21 @@ public class MecanumTeleOp extends LinearOpMode {
                 telemetry.addData("carlos loves katelyn", false);
             }
 
+            touchpadCurrState = gamepad1.touchpad;
+            // check for button state transitions.
+            if (touchpadCurrState && !touchpadPrevState)  {
+                // button is transitioning to a pressed state. So Toggle debug mode
+                TEAM_COLOR_RED = !TEAM_COLOR_RED;
+            }
+            // update previous state variable.
+            touchpadPrevState = touchpadCurrState;
+            if (TEAM_COLOR_RED) {
+                telemetry.addData("team color red is ",true);
+            }
+            else {
+                telemetry.addData("team color is ", true);
+            }
+
             back1CurrState = gamepad1.back;
             if (back1CurrState && !back1PrevState) {
                 leadScrewDebug = !leadScrewDebug;
@@ -635,6 +652,8 @@ public class MecanumTeleOp extends LinearOpMode {
                     slideMotorL.setPower(VIPER_SLIDES_POWER_MANUAL);
 
             }
+
+
             /*
             if (gamepad1.ps){//turns off viper slides
                 slideMotor.setPower(0);
