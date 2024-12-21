@@ -1090,8 +1090,8 @@ public class MecanumTeleOp extends LinearOpMode {
                     //telemetry.update();
                     idle();
                 }
-                extendServoR.setPosition(MISUMI_EXTEND_LIMIT_R);
-                extendServoL.setPosition(1-MISUMI_EXTEND_LIMIT_R);
+                extendServoR.setPosition(0.1);
+                extendServoL.setPosition(0.9);
 
                 wristServo.setPosition(OUTTAKE_PRESET_WRIST_POS);
 
