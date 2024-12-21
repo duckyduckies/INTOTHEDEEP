@@ -78,7 +78,7 @@ public class AutoObservationZone extends LinearOpMode {
 
         // ****** Action [1] ****** Assume we already have a specimen in the claw (Specimen outtake)
 
-
+/*
         robot.move(-1, 0, 0, 0.5); //left 2 tiles
         runtime.reset();
         while (opModeIsActive() && (runtime.milliseconds() < ACTION_1_TIMER)) {} //400
@@ -164,7 +164,7 @@ public class AutoObservationZone extends LinearOpMode {
 
         robot.rotate(-45, 0.5);
         robot.highBasket();
-
+*/
 
         //robot.rotate(45, 0.5);
 

@@ -37,12 +37,14 @@ public class AutoNetZone extends LinearOpMode {
 
     private boolean debugMode = true;
     private ElapsedTime runtime = new ElapsedTime();
-    public static int ACTION_1_TIMER = 400;
-    public static int ACTION_2_TIMER = 700;
-    public static int ACTION_3_TIMER = 2500;
-    public static int ACTION_4_TIMER = 500;
-    public static int ACTION_5_TIMER = 1500;
-    public static int ACTION_6_TIMER = 500;
+    public static int ACTION_1_TIMER = 500; // sideway
+    public static int ACTION_2_TIMER = 720; // backward
+    public static int ACTION_3_TIMER = 3500; // high basket
+    public static int ACTION_4_TIMER = 500; // outtake
+    public static int ACTION_8_TIMER = 1600; // reset
+    public static int ACTION_5_TIMER = 650; // forward
+    public static int ACTION_6_TIMER = 3200; //sideway
+    public static int ACTION_7_TIMER = 450; //forward
 
     FtcDashboard dashboard;
     public static int TARGET_ANGLE = -45;
@@ -118,21 +120,29 @@ public class AutoNetZone extends LinearOpMode {
         }
 
         robot.reset();
+        runtime.reset();
+        while (opModeIsActive() && (runtime.milliseconds() < ACTION_8_TIMER)) {
+            //telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.milliseconds());
+            //telemetry.update();
+        }
 
         robot.rotate(45, 0.5);
 
         robot.move(0, 1, 0, 0.5);
         runtime.reset();
-        while (opModeIsActive() && (runtime.milliseconds() < 500));
+        while (opModeIsActive() && (runtime.milliseconds() < ACTION_5_TIMER));
 
         robot.move(-1, 0, 0, 0.5);
         runtime.reset();
-        while (opModeIsActive() && (runtime.milliseconds() < 2500));
+        while (opModeIsActive() && (runtime.milliseconds() < ACTION_6_TIMER));
 
         //add arm up function here
+        robot.autoAscend1();
 
         robot.move(0, 1, 0, 0.5);
         runtime.reset();
-        while (opModeIsActive() && (runtime.milliseconds() < 250));
+        while (opModeIsActive() && (runtime.milliseconds() < ACTION_7_TIMER));
+
+
     }
 }
