@@ -64,7 +64,6 @@ public class MecanumRobot {
     DcMotor backLeftMotor;
     DcMotor frontRightMotor;
     DcMotor backRightMotor;
-    ColorSensor viperSlidesSensor;
 
     /***************** 2. Viper Slides *****************/ //28 inch,
     //private final static double VIPER_SLIDES_POWER = 0.75;
@@ -74,8 +73,8 @@ public class MecanumRobot {
     private final static int VIPER_SLIDES_INITIAL_POSITION = 0;
     private final static int VIPER_SLIDES_STEP = 200;
     private final static int VIPER_SLIDES_UPPER_LIMIT = 5000;
-    private final static int VIPER_SLIDES_LOWER_LIMIT = 0;
-    private final static int VIPER_SLIDES_OFF_THRESHOLD = 50;
+    private final static int VIPER_SLIDES_LOWER_LIMIT = -100;
+    private final static double VIPER_SLIDES_CALIBRATE_DISTANCE = 3.0;
     DcMotor slideMotorR;
     DcMotor slideMotorL;
     int slidePositionR = VIPER_SLIDES_INITIAL_POSITION;
@@ -104,6 +103,7 @@ public class MecanumRobot {
     private final static int CLAW_INITIAL_STATE = 0;
     private final static double CLOCKWISE_POWER = -1.0;
     private final static double COUNTER_CLOCKWISE_POWER = 1.0;
+    private final static double SAMPLE_IN_DISTANCE = 2.5;
     // Intake state:
     // 0: NotOutake
     int clawState = CLAW_INITIAL_STATE;
@@ -135,12 +135,13 @@ public class MecanumRobot {
     int LSPositionR = LEAD_SCREW_INITIAL_POSITION;
     int LSState = 0;
     /***************** 8. Color Sensor *****************/
-    public static boolean TEAM_COLOR_RED = false; // 224, 18, 76, 154
+    public static boolean TEAM_COLOR_RED = true; // 224, 18, 76, 154
     private final static int BLUE_HUE = 224;
     private final static int RED_HUE = 18;
     private final static int YELLOW_HUE = 76;
     private final static int NO_SAMPLE_HUE = 154;
     ColorSensor colorSensor;
+    ColorSensor viperSlidesSensor;
     /***************** 9. LED *****************/
     RevBlinkinLedDriver blinkinLedDriver;
     private final static RevBlinkinLedDriver.BlinkinPattern DEFAULT_PATTERN = RevBlinkinLedDriver.BlinkinPattern.GRAY;
@@ -179,18 +180,19 @@ public class MecanumRobot {
         }
     }
     /***************** Preset Buttons *****************/
-    public static double INTAKE_PRESET_WRIST_POS = 0.50;
+    public static double INTAKE_PRESET_WRIST_POS = 0.5;
     public static int INTAKE_PRESET_ARM_POS = -1300;
-    public static int OUTTAKE_PRESET_HIGH_BASKET_VIPER_POS = 4000;
+    public static int OUTTAKE_PRESET_HIGH_BASKET_VIPER_POS = 4200;
     public static int OUTTAKE_PRESET_LOW_BASKET_VIPER_POS = 2000;
-    public static double OUTTAKE_PRESET_WRIST_POS = 0.38;
+    public static double OUTTAKE_PRESET_WRIST_POS = 0.36;
     public static int OUTTAKE_PRESET_ARM_POS = 350;
-    public static double OUTTAKE_PRESET_CHAMBER_WRIST_POS = 0.4;
-    public static int OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_1 = 800;
-    public static int OUTTAKE_PRESET_CHAMBER_VIPER_VIPER_1 = 766;
+    public static double OUTTAKE_PRESET_CHAMBER_WRIST_POS = 0.5;
+    public static double OUTTAKE_PRESET_MISUMI_R = 0.1;
+    public static int OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_1 = 2000;
+    public static int OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_2 = 1450;
     public static int LS_ABOVE_LOWER_RUNG = 34000;
-    public static int LS_LOWER_RUNG = 8000;
-    // Define a constructor that allows the OpMode to pass a reference to itself.
+    public static int VIPER_SLIDE_DOWN_TIMER = 1500;
+    public static int VIPER_SLIDE_UP_TIMER = 500;
     public MecanumRobot (LinearOpMode opmode) {
         myOpMode = opmode;
     }
@@ -562,18 +564,30 @@ public class MecanumRobot {
         }
     }
     public void highBasket() {
+        armMotor.setTargetPosition(ARM_INITIAL_POSITION);
+        armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        armMotor.setPower(ARM_POWER_PRESET);
+
+
         slideMotorR.setTargetPosition(OUTTAKE_PRESET_HIGH_BASKET_VIPER_POS); //10300
         slideMotorL.setTargetPosition(OUTTAKE_PRESET_HIGH_BASKET_VIPER_POS); //10300
         slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET);
         slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET);
+
         runtime.reset();
-        while (myOpMode.opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy() && (runtime.milliseconds() < 1000))
+        while (myOpMode.opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy() &&
+                (runtime.milliseconds() < VIPER_SLIDE_UP_TIMER)) {
+            //telemetry.addData("Outtake Preset", "Viper: %4.1f S Elapsed", runtime.milliseconds());
+            //telemetry.update();
             myOpMode.idle();
-        extendServoR.setPosition(MISUMI_EXTEND_LIMIT_R);
-        extendServoL.setPosition(1 - MISUMI_EXTEND_LIMIT_R);
+        }
+        extendServoR.setPosition(OUTTAKE_PRESET_MISUMI_R);
+        extendServoL.setPosition(1-OUTTAKE_PRESET_MISUMI_R);
+
         wristServo.setPosition(OUTTAKE_PRESET_WRIST_POS);
+
         armMotor.setTargetPosition(OUTTAKE_PRESET_ARM_POS);
         armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         armMotor.setPower(ARM_POWER_PRESET);
@@ -583,30 +597,46 @@ public class MecanumRobot {
         clawServoL.setPower(COUNTER_CLOCKWISE_POWER);
     }
     public void reset() {
-        slideMotorR.setTargetPosition(VIPER_SLIDES_OFF_THRESHOLD);
-        slideMotorL.setTargetPosition(VIPER_SLIDES_OFF_THRESHOLD);
+        slideMotorR.setTargetPosition(VIPER_SLIDES_INITIAL_POSITION);
+        slideMotorL.setTargetPosition(VIPER_SLIDES_INITIAL_POSITION);
         slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
         slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
         slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
         clawState = 0;
         clawServoR.setPower(0);
         clawServoL.setPower(0);
+
         extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
         extendServoL.setPosition(-MISUMI_RETRACT_LIMIT_R+1);
+
         wristServo.setPosition(WRIST_DOWN);
+
         armMotor.setTargetPosition(ARM_INITIAL_POSITION);
         armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         armMotor.setPower(ARM_POWER_PRESET);
+
+        ///// After the arm reaches position, switch back to RUN_WITHOUT_ENCODER mode
         while (armMotor.isBusy()) myOpMode.idle();
         armMotor.setPower(0);
         armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+
+        ///// After the viper slides reaches position, switch back to RUN_WITHOUT_ENCODER mode
+
         runtime.reset();
-        while (myOpMode.opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy() && (runtime.milliseconds() < 2500)) myOpMode.idle();
+        while (myOpMode.opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy()
+                && (runtime.milliseconds() < VIPER_SLIDE_DOWN_TIMER)
+                && ((DistanceSensor) viperSlidesSensor).getDistance(DistanceUnit.CM)
+                >= VIPER_SLIDES_CALIBRATE_DISTANCE) myOpMode.idle();
         slideMotorR.setPower(0);
         slideMotorL.setPower(0);
+        slideMotorR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slideMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slideMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         slideMotorL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        myOpMode.telemetry.addData("viper slides", "reset");
     }
     public void autoAscend1() {
     }
@@ -629,8 +659,9 @@ public class MecanumRobot {
 
         runtime.reset();
         while (myOpMode.opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy()
-                && (runtime.milliseconds() < 250)
-                && ((DistanceSensor) viperSlidesSensor).getDistance(DistanceUnit.CM) >= 3.0) myOpMode.idle();
+                && (runtime.milliseconds() < VIPER_SLIDE_DOWN_TIMER)
+                && ((DistanceSensor) viperSlidesSensor).getDistance(DistanceUnit.CM)
+                >= VIPER_SLIDES_CALIBRATE_DISTANCE) myOpMode.idle();
         slideMotorR.setPower(0);
         slideMotorL.setPower(0);
         slideMotorR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -646,13 +677,15 @@ public class MecanumRobot {
         clawServoL.setPower(CLOCKWISE_POWER);
         clawState = 1; // intake
     }
+
     public void clawouttake (){
-        wristServo.setPosition(OUTTAKE_PRESET_WRIST_POS);
+        //wristServo.setPosition(OUTTAKE_PRESET_WRIST_POS);
     }
     public void highchamberspecimenouttake () {
         armMotor.setTargetPosition(ARM_INITIAL_POSITION);
         armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         armMotor.setPower(ARM_POWER_PRESET);
+
         slideMotorR.setTargetPosition(OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_1); //2400
         slideMotorL.setTargetPosition(OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_1); //2400
         slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -660,23 +693,35 @@ public class MecanumRobot {
         slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET);
         slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET);
 
-        while (myOpMode.opModeIsActive() && (runtime.milliseconds() < 500)) {
-            //telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.milliseconds());
-            //.update();
+        runtime.reset();
+        while (myOpMode.opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy()
+                && runtime.milliseconds() < VIPER_SLIDE_UP_TIMER) {
+            //telemetry.addData("Outtake Preset", "Viper: %4.1f S Elapsed", runtime.milliseconds());
+            //telemetry.update();
         }
 
+        extendServoR.setPosition(OUTTAKE_PRESET_MISUMI_R);
+        extendServoL.setPosition(1-OUTTAKE_PRESET_MISUMI_R);
+
+        wristServo.setPosition(OUTTAKE_PRESET_CHAMBER_WRIST_POS); //0.4
+
+        armMotor.setTargetPosition(OUTTAKE_PRESET_ARM_POS);
+        armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        armMotor.setPower(ARM_POWER_PRESET);
     }
     public void highchamberspecimenouttake2(){
-        slideMotorR.setTargetPosition(OUTTAKE_PRESET_CHAMBER_VIPER_VIPER_1); //2300
-        slideMotorL.setTargetPosition(OUTTAKE_PRESET_CHAMBER_VIPER_VIPER_1); //2300
+        slideMotorR.setTargetPosition(OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_2); //2300
+        slideMotorL.setTargetPosition(OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_2); //2300
         slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET);
         slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET);
 
-        while (myOpMode.opModeIsActive() && (runtime.milliseconds() < 500)) {
-            //telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.milliseconds());
-            //.update();
+        runtime.reset();
+        while (myOpMode.opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy()
+                && runtime.milliseconds() < VIPER_SLIDE_UP_TIMER) {
+            //telemetry.addData("Outtake Preset", "Viper: %4.1f S Elapsed", runtime.milliseconds());
+            //telemetry.update();
         }
     }
 }

@@ -1000,23 +1000,18 @@ public class MecanumTeleOp extends LinearOpMode {
                 armMotor.setPower(ARM_POWER_PRESET);
             }
 
-            if (gamepad2.dpad_right || gamepad2.dpad_left) { //specimen outtake
+            if (gamepad2.dpad_right) { //specimen outtake
 
                 armMotor.setTargetPosition(ARM_INITIAL_POSITION);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 armMotor.setPower(ARM_POWER_PRESET);
 
-                if (gamepad2.dpad_right) {
-                    slideMotorR.setTargetPosition(OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_1); //2400
-                    slideMotorL.setTargetPosition(OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_1); //2400
-                    slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                    slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                    slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET);
-                    slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET);
-                } else if (gamepad2.dpad_left) {
-                    slideMotorR.setTargetPosition(OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_2); //2300
-                    slideMotorL.setTargetPosition(OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_2); //2300
-                }
+                slideMotorR.setTargetPosition(OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_1); //2400
+                slideMotorL.setTargetPosition(OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_1); //2400
+                slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET);
+                slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET);
 
                 runtime.reset();
                 while (opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy() 
@@ -1033,6 +1028,20 @@ public class MecanumTeleOp extends LinearOpMode {
                 armMotor.setTargetPosition(OUTTAKE_PRESET_ARM_POS);
                 armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 armMotor.setPower(ARM_POWER_PRESET);
+            }
+            if (gamepad2.dpad_left) {
+                slideMotorR.setTargetPosition(OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_2); //2300
+                slideMotorL.setTargetPosition(OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_2); //2300
+                slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET);
+                slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET);
+                runtime.reset();
+                while (opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy()
+                        && runtime.milliseconds() < VIPER_SLIDE_UP_TIMER) {
+                    //telemetry.addData("Outtake Preset", "Viper: %4.1f S Elapsed", runtime.milliseconds());
+                    //telemetry.update();
+                }
             }
             // Drivetrain Moving Position
             if (gamepad2.x) {
