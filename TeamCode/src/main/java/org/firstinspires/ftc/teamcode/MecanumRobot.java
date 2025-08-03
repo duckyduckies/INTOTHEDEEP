@@ -57,7 +57,7 @@ public class MecanumRobot {
     public static boolean robotCentricDrive = true;
     private final static int DRIVETRAIN_POWER_MODIFIER_EQ_VER = 0;
     public static double DPAD_FORWARD_BACKWARD_POWER_RATIO = 0.4;
-    public static double DPAD_SIDEWAY_POWER_RATIO = 0.8;
+    public static double DPAD_SIDEWAY_POWER_RATIO = 1;
     // Declare our motors
     // Make sure your ID's match your configuration
     DcMotor frontLeftMotor;
@@ -72,30 +72,30 @@ public class MecanumRobot {
     public static double VIPER_SLIDES_POWER_PRESET_DOWN = 0.8;
     private final static int VIPER_SLIDES_INITIAL_POSITION = 0;
     private final static int VIPER_SLIDES_STEP = 200;
-    private final static int VIPER_SLIDES_UPPER_LIMIT = 5000;
-    private final static int VIPER_SLIDES_LOWER_LIMIT = -100;
+    public final static int VIPER_SLIDES_UPPER_LIMIT = 5000;
+    public final static int VIPER_SLIDES_LOWER_LIMIT = -100;
     private final static double VIPER_SLIDES_CALIBRATE_DISTANCE = 3.0;
     DcMotor slideMotorR;
     DcMotor slideMotorL;
-    int slidePositionR = VIPER_SLIDES_INITIAL_POSITION;
-    int slidePositionL = VIPER_SLIDES_INITIAL_POSITION;
+    //int slidePositionR = VIPER_SLIDES_INITIAL_POSITION;
+    //int slidePositionL = VIPER_SLIDES_INITIAL_POSITION;
     /***************** 3. Arm *****************/
 
     //private final static double ARM_POWER = 0.5;
     private final static double ARM_POWER_MANUAL = 0.6;
     public static double ARM_POWER_PRESET = 0.9;
-    private final static int ARM_INITIAL_POSITION = 0;
+    public final static int ARM_INITIAL_POSITION = 0;
     private final static int ARM_STEP = 50;
-    private final static int ARM_UPPER_LIMIT = 350;
-    private final static int ARM_LOWER_LIMIT = -1400;
+    public final static int ARM_UPPER_LIMIT = 350;
+    public final static int ARM_LOWER_LIMIT = -1500;
     private final static int ARM_MISUMI_RETRACT_THRESHOLD_L = -1100;
     private final static int ARM_WRIST_RETRACT_THRESHOLD_L = -900;
     DcMotor armMotor;
     int armPosition = ARM_INITIAL_POSITION;
     /***************** 4. Wrist *****************/
     private final static double WRIST_STEP = 0.02;
-    private final static double WRIST_UP = 0.38;
-    private final static double WRIST_DOWN = 1;
+    private final static double WRIST_UP = 0.78;
+    private final static double WRIST_DOWN = 0;
     double wristPosition = WRIST_DOWN; // default position is down
     Servo wristServo;
 
@@ -106,16 +106,16 @@ public class MecanumRobot {
     private final static double SAMPLE_IN_DISTANCE = 2.5;
     // Intake state:
     // 0: NotOutake
-    int clawState = CLAW_INITIAL_STATE;
+    public int clawState = CLAW_INITIAL_STATE;
     //int intakedirection = 0;
     CRServo clawServoR;
     CRServo clawServoL;
 
     /***************** 6. MiSUMi Slides *****************/
-    private final static double MISUMI_STEP_RATIO_1 = 0.1; // CY defines it
-    private final static double MISUMI_EXTEND_LIMIT_R = 0.35;
-    private final static double MISUMI_RETRACT_LIMIT_R = 0;
-    private final static double MISUMI_STEP_RATIO_2 = MISUMI_EXTEND_LIMIT_R/1; // CC defines it
+    public final static double MISUMI_STEP_RATIO_1 = 0.1; // CY defines it
+    public final static double MISUMI_EXTEND_LIMIT_R = 0.35;
+    public final static double MISUMI_RETRACT_LIMIT_R = 0;
+    public final static double MISUMI_STEP_RATIO_2 = MISUMI_EXTEND_LIMIT_R/1; // CC defines it
     Servo extendServoR;
     Servo extendServoL;
     double slideExtendR = MISUMI_RETRACT_LIMIT_R;
@@ -142,6 +142,11 @@ public class MecanumRobot {
     private final static int NO_SAMPLE_HUE = 154;
     ColorSensor colorSensor;
     ColorSensor viperSlidesSensor;
+    // hsvValues is an array that will hold the hue, saturation, and value information.
+    float hsvValues[] = {0F,0F,0F};
+
+    // values is a reference to the hsvValues array.
+    final float values[] = hsvValues;
     /***************** 9. LED *****************/
     RevBlinkinLedDriver blinkinLedDriver;
     private final static RevBlinkinLedDriver.BlinkinPattern DEFAULT_PATTERN = RevBlinkinLedDriver.BlinkinPattern.GRAY;
@@ -152,7 +157,7 @@ public class MecanumRobot {
         MANUAL,
         AUTO
     }
-    private MecanumTeleOp.DisplayKind displayKind;
+    private DisplayKind displayKind;
     private String currentPattern;
 
     public String getBlinkinLEDDisplayPattern() {
@@ -180,25 +185,26 @@ public class MecanumRobot {
         }
     }
     /***************** Preset Buttons *****************/
-    public static double INTAKE_PRESET_WRIST_POS = 0.5;
-    public static int INTAKE_PRESET_ARM_POS = -1400;
-    public static int OUTTAKE_PRESET_HIGH_BASKET_VIPER_POS = 4200;
+    public static double INTAKE_PRESET_WRIST_POS = 0.48;
+    public static int INTAKE_PRESET_ARM_POS = -1500;
+    public static int HIGH_BASKET = 0;
+    public static int LOW_BASKET = 1;
+    public static int OUTTAKE_PRESET_HIGH_BASKET_VIPER_POS = 4600;
     public static int OUTTAKE_PRESET_LOW_BASKET_VIPER_POS = 1800;
-    public static double OUTTAKE_PRESET_WRIST_POS = 0.36;
+    public static double OUTTAKE_PRESET_WRIST_POS = 0.7;
     public static int OUTTAKE_PRESET_ARM_POS = 350;
-    public static double OUTTAKE_PRESET_CHAMBER_WRIST_POS = 0.5;
+    public static double OUTTAKE_PRESET_CHAMBER_WRIST_POS = 0.4;
     public static double OUTTAKE_PRESET_MISUMI_R = 0.1;
     public static int OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_1 = 2000;
     public static int OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_2 = 1450;
     public static int LS_ABOVE_LOWER_RUNG = 34000;
-    public static int VIPER_SLIDE_DOWN_TIMER = 1500;
+    public static int VIPER_SLIDE_DOWN_TIMER = 1900;
     public static int VIPER_SLIDE_UP_TIMER = 500;
     public MecanumRobot (LinearOpMode opmode) {
         myOpMode = opmode;
     }
 
-    public void initialize()
-    {
+    public void initializeBeforeStart() {
         /***************** 0. IMU *****************/
         // Retrieve the IMU from the hardware map
         imu = myOpMode.hardwareMap.get(IMU.class, "imu");
@@ -218,7 +224,8 @@ public class MecanumRobot {
             imu.initialize(parameters);
         }
         imu.resetYaw();
-
+    }
+    public void initialize() {
         /***************** 1. Mecanum Drivetrain *****************/
         // Reverse the right side motors. This may be wrong for your setup.
         // If your robot moves backwards when commanded to go forwards,
@@ -270,17 +277,11 @@ public class MecanumRobot {
         LSMotorR = myOpMode.hardwareMap.dcMotor.get("LSMotorR");
 
         /***************** 8. Color Sensor *****************/
-        // hsvValues is an array that will hold the hue, saturation, and value information.
-        float hsvValues[] = {0F,0F,0F};
-
-        // values is a reference to the hsvValues array.
-        final float values[] = hsvValues;
-
         // get a reference to our ColorSensor object.
         colorSensor = myOpMode.hardwareMap.get(ColorSensor.class, "ColorSensor");
         viperSlidesSensor = myOpMode.hardwareMap.get(ColorSensor.class, "ViperSlidesSensor");
         /***************** 9. LED *****************/
-        displayKind = MecanumTeleOp.DisplayKind.MANUAL;
+        displayKind = DisplayKind.MANUAL;
         blinkinLedDriver = myOpMode.hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
         setBlinkinLEDDisplayPattern(DEFAULT_PATTERN);
 
@@ -562,14 +563,136 @@ public class MecanumRobot {
             return Power;
         }
     }
-    public void highBasket() {
+    public void viperSlidesUp(Telemetry telemetry) {
+        int slidePositionR = slideMotorR.getCurrentPosition();
+        int slidePositionL = slideMotorL.getCurrentPosition();
+        //slideMotor.setPower(-gamepad2.left_stick_y);
+        slidePositionR = slidePositionR + VIPER_SLIDES_STEP; // slides goes up
+        slideMotorR.setTargetPosition(slidePositionR);
+        slideMotorL.setTargetPosition(slidePositionR);
+        slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        slideMotorR.setPower(VIPER_SLIDES_POWER_MANUAL);
+        slideMotorL.setPower(VIPER_SLIDES_POWER_MANUAL);
+        telemetry.addData("slidePositionR: ", slidePositionR);
+        telemetry.addData("slidePositionL: ", slidePositionL);
+    }
+    public void viperSlidesDown(Telemetry telemetry) {
+        int slidePositionR = slideMotorR.getCurrentPosition();
+        int slidePositionL = slideMotorL.getCurrentPosition();
+        if (((DistanceSensor) viperSlidesSensor).getDistance(DistanceUnit.CM)
+                < VIPER_SLIDES_CALIBRATE_DISTANCE) {
+            slideMotorR.setPower(0);
+            slideMotorL.setPower(0);
+            slideMotorR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            slideMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        } else {
+            //slideMotor.setPower(-gamepad2.left_stick_y);
+            slidePositionR = slidePositionR - VIPER_SLIDES_STEP;
+            slideMotorR.setTargetPosition(slidePositionR);
+            slideMotorL.setTargetPosition(slidePositionR);
+            slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            slideMotorR.setPower(VIPER_SLIDES_POWER_MANUAL);
+            slideMotorL.setPower(VIPER_SLIDES_POWER_MANUAL);
+        }
+    }
+    public void armUp() {
+        // retracts misumi slides when the arm rotates up and leaves the floor (at -1100 )
+        if (armPosition<=ARM_MISUMI_RETRACT_THRESHOLD_L+200 && armPosition>=ARM_MISUMI_RETRACT_THRESHOLD_L){
+            extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
+            extendServoL.setPosition(-MISUMI_RETRACT_LIMIT_R+1);
+            clawServoR.setPower(0);
+            clawServoL.setPower(0);
+            clawState=0;
+        }
+        else if (armPosition<=ARM_WRIST_RETRACT_THRESHOLD_L+200 && armPosition>=ARM_WRIST_RETRACT_THRESHOLD_L){
+            wristServo.setPosition(WRIST_DOWN);
+
+            clawServoR.setPower(0);
+            clawServoL.setPower(0);
+            clawState=0;
+        }
+        else if (armPosition<=ARM_INITIAL_POSITION+200 && armPosition>=ARM_INITIAL_POSITION) {
+            extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
+            extendServoL.setPosition(-MISUMI_RETRACT_LIMIT_R+1);
+            wristServo.setPosition(WRIST_DOWN);
+        }
+        armPosition = armPosition + ARM_STEP; // arm goes up by one step
+        armMotor.setTargetPosition(armPosition);
+        armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        armMotor.setPower(ARM_POWER_MANUAL);
+        if (armPosition > ARM_UPPER_LIMIT) {
+            armMotor.setTargetPosition(ARM_UPPER_LIMIT);
+            armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        }
+    }
+    public void armDown() {
+        if (armPosition<=ARM_WRIST_RETRACT_THRESHOLD_L+200 && armPosition>=ARM_WRIST_RETRACT_THRESHOLD_L){
+            wristServo.setPosition(INTAKE_PRESET_WRIST_POS);
+        }
+        armPosition = armPosition - ARM_STEP; // arm goes down by one step
+        armMotor.setTargetPosition(armPosition);
+        armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        armMotor.setPower(ARM_POWER_MANUAL);
+        if (armPosition > ARM_UPPER_LIMIT) {
+            armMotor.setTargetPosition(ARM_UPPER_LIMIT);
+            armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        }
+    }
+    public void wristDown() {
+        if (wristPosition >= WRIST_DOWN) { // wrist down
+            wristPosition -= WRIST_STEP;
+            wristServo.setPosition(wristPosition);
+        }
+    }
+    public void wristUp() {
+        if (wristPosition <= WRIST_UP) { // wrist up
+            wristPosition += WRIST_STEP;
+            wristServo.setPosition(wristPosition);
+        }
+    }
+    public void setClawState(Telemetry telemetry) {
+        if (clawState==0) {
+            clawServoR.setPower(0);
+            clawServoL.setPower(0);
+        } else if (clawState==1) {
+            clawServoR.setPower(COUNTER_CLOCKWISE_POWER);
+            clawServoL.setPower(CLOCKWISE_POWER);
+        } else if (clawState==2) {
+            clawServoR.setPower(CLOCKWISE_POWER);
+            clawServoL.setPower(COUNTER_CLOCKWISE_POWER);
+        }
+        telemetry.addData("" +
+                "0: Not rotating\n" +
+                "1: Intake\n" +
+                "2: Outtake\n" +
+                "Claw Status = ",clawState);
+    }
+    public void extendHorizontalSlides(double triggerValue) {
+        slideExtendR = slideExtendR + MISUMI_STEP_RATIO_1 * (triggerValue*MISUMI_STEP_RATIO_2);
+        if (slideExtendR>MISUMI_EXTEND_LIMIT_R) slideExtendR=MISUMI_EXTEND_LIMIT_R;
+        extendServoR.setPosition(slideExtendR);
+        extendServoL.setPosition(-slideExtendR + 1);
+    }
+    public void retractHorizontalSlides(double triggerValue) {
+        slideExtendR = slideExtendR - MISUMI_STEP_RATIO_1 * (triggerValue*MISUMI_STEP_RATIO_2);
+        if (slideExtendR<MISUMI_RETRACT_LIMIT_R) slideExtendR=0;
+        extendServoR.setPosition(slideExtendR);
+        extendServoL.setPosition(-slideExtendR + 1);
+    }
+    public void outtakeBasket(int highOrLow) {
         armMotor.setTargetPosition(ARM_INITIAL_POSITION);
         armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         armMotor.setPower(ARM_POWER_PRESET);
 
-
-        slideMotorR.setTargetPosition(OUTTAKE_PRESET_HIGH_BASKET_VIPER_POS+400); //10300
-        slideMotorL.setTargetPosition(OUTTAKE_PRESET_HIGH_BASKET_VIPER_POS+400); //10300
+        if (highOrLow==MecanumRobot.HIGH_BASKET) {
+            slideMotorR.setTargetPosition(OUTTAKE_PRESET_HIGH_BASKET_VIPER_POS); //10300
+            slideMotorL.setTargetPosition(OUTTAKE_PRESET_HIGH_BASKET_VIPER_POS); //10300
+        } else {
+            slideMotorR.setTargetPosition(OUTTAKE_PRESET_LOW_BASKET_VIPER_POS); //10300
+            slideMotorL.setTargetPosition(OUTTAKE_PRESET_LOW_BASKET_VIPER_POS); //10300
+        }
         slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET);
@@ -727,6 +850,31 @@ public class MecanumRobot {
                 && runtime.milliseconds() < VIPER_SLIDE_UP_TIMER) {
             //telemetry.addData("Outtake Preset", "Viper: %4.1f S Elapsed", runtime.milliseconds());
             //telemetry.update();
+        }
+    }
+    public void autoOuttakeBasedOnColor(Telemetry telemetry) {
+        if (((DistanceSensor) colorSensor).getDistance(DistanceUnit.CM) <= SAMPLE_IN_DISTANCE) {
+            telemetry.addData("sample detected", 1);
+            // convert the RGB values to HSV values.
+            Color.RGBToHSV((int)colorSensor.red() * 8, (int) colorSensor.green() * 8, (int) colorSensor.blue() * 8, hsvValues);
+            // send the info back to driver station using telemetry function.
+            telemetry.addData("Clear", colorSensor.alpha());
+            telemetry.addData("Red  ", colorSensor.red());
+            telemetry.addData("Green", colorSensor.green());
+            telemetry.addData("Blue ", colorSensor.blue());
+            telemetry.addData("Hue", hsvValues[0]);
+            if ((TEAM_COLOR_RED && hsvValues[0] >= BLUE_HUE - 10 && hsvValues[0] <= BLUE_HUE + 10)
+                    || (!TEAM_COLOR_RED && hsvValues[0] >= RED_HUE - 10 && hsvValues[0] <= RED_HUE + 10)){
+                clawServoR.setPower(CLOCKWISE_POWER);
+                clawServoL.setPower(COUNTER_CLOCKWISE_POWER);
+                runtime.reset();
+                while (runtime.milliseconds() <= 500 && myOpMode.opModeIsActive()) myOpMode.idle();
+                clawServoR.setPower(0);
+                clawServoL.setPower(0);
+            }
+        }
+        if (colorSensor instanceof DistanceSensor) {
+            telemetry.addData("Distance (cm)", "%.3f", ((DistanceSensor) colorSensor).getDistance(DistanceUnit.CM));
         }
     }
 }

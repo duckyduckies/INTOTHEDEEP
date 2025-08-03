@@ -1,46 +1,24 @@
 package org.firstinspires.ftc.teamcode;
 
-import android.graphics.Color;
-
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.CRServo;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 
-import com.qualcomm.robotcore.hardware.IMU;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-
-import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
-
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.internal.system.Deadline;
-
-import java.util.concurrent.TimeUnit;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.dashboard.config.Config;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 @TeleOp
 @Config
-public class MecanumTeleOp extends LinearOpMode {
-    //MecanumRobot robot = new MecanumRobot(this);
+public class MecanumTeleOp2 extends LinearOpMode {
+    MecanumRobot robot = new MecanumRobot(this);
     private ElapsedTime runtime = new ElapsedTime();
     private boolean debugMode = true;
     private boolean leadScrewDebug = false;
@@ -57,11 +35,13 @@ public class MecanumTeleOp extends LinearOpMode {
     private boolean LSPrevState = false;
     private boolean LSCurrState = false;
     private final static double TRIGGER_THRESHOLD = 0.25;
+    public static boolean TEAM_COLOR_RED = true; // 224, 18, 76, 154
 
-    /***************** 0. IMU *****************/
+    /*
+    //***************** 0. IMU *****************
     IMU imu;
 
-    /***************** 1. Mecanum Drivetrain *****************/
+    //***************** 1. Mecanum Drivetrain *****************
     public static boolean robotCentricDrive = true;
     private final static int DRIVETRAIN_POWER_MODIFIER_EQ_VER = 0;
     public static double DPAD_FORWARD_BACKWARD_POWER_RATIO = 0.4;
@@ -73,7 +53,8 @@ public class MecanumTeleOp extends LinearOpMode {
     DcMotor frontRightMotor;
     DcMotor backRightMotor;
 
-    /***************** 2. Viper Slides *****************/ //28 inch,
+    //***************** 2. Viper Slides *****************
+    //28 inch,
     //private final static double VIPER_SLIDES_POWER = 0.75;
     private final static double VIPER_SLIDES_POWER_MANUAL = 1;
     public static double VIPER_SLIDES_POWER_PRESET = 1;
@@ -87,7 +68,7 @@ public class MecanumTeleOp extends LinearOpMode {
     DcMotor slideMotorL;
     int slidePositionR = VIPER_SLIDES_INITIAL_POSITION;
     int slidePositionL = VIPER_SLIDES_INITIAL_POSITION;
-    /***************** 3. Arm *****************/
+    //***************** 3. Arm *****************
 
     //private final static double ARM_POWER = 0.5;
     private final static double ARM_POWER_MANUAL = 0.6;
@@ -100,14 +81,14 @@ public class MecanumTeleOp extends LinearOpMode {
     private final static int ARM_WRIST_RETRACT_THRESHOLD_L = -900;
     DcMotor armMotor;
     int armPosition = ARM_INITIAL_POSITION;
-    /***************** 4. Wrist *****************/
+    //***************** 4. Wrist *****************
     private final static double WRIST_STEP = 0.02;
     private final static double WRIST_UP = 0.38;
     private final static double WRIST_DOWN = 1;
     double wristPosition = WRIST_DOWN; // default position is down
     Servo wristServo;
 
-    /***************** 5. Claw Intake *****************/
+    //***************** 5. Claw Intake *****************
     private final static int CLAW_INITIAL_STATE = 0;
     private final static double CLOCKWISE_POWER = -1.0;
     private final static double COUNTER_CLOCKWISE_POWER = 1.0;
@@ -119,7 +100,7 @@ public class MecanumTeleOp extends LinearOpMode {
     CRServo clawServoR;
     CRServo clawServoL;
 
-    /***************** 6. MiSUMi Slides *****************/
+    //***************** 6. MiSUMi Slides *****************
     private final static double MISUMI_STEP_RATIO_1 = 0.1; // CY defines it
     private final static double MISUMI_EXTEND_LIMIT_R = 0.35;
     private final static double MISUMI_RETRACT_LIMIT_R = 0;
@@ -128,7 +109,7 @@ public class MecanumTeleOp extends LinearOpMode {
     Servo extendServoL;
     double slideExtendR = MISUMI_RETRACT_LIMIT_R;
 
-    /***************** 7. Lead Screw *****************/
+    //***************** 7. Lead Screw *****************
     private final static double LEAD_SCREW_POWER = 0.7;
     private final static double LEAD_SCREW_POWER_PRESET = 1;
     private final static int LEAD_SCREW_INITIAL_POSITION = 0;
@@ -142,15 +123,14 @@ public class MecanumTeleOp extends LinearOpMode {
     int LSPositionL = LEAD_SCREW_INITIAL_POSITION;
     int LSPositionR = LEAD_SCREW_INITIAL_POSITION;
     int LSState = 0;
-    /***************** 8. Color Sensor *****************/
-    public static boolean TEAM_COLOR_RED = true; // 224, 18, 76, 154
+    //***************** 8. Color Sensor *****************
     private final static int BLUE_HUE = 224;
     private final static int RED_HUE = 18;
     private final static int YELLOW_HUE = 76;
     private final static int NO_SAMPLE_HUE = 154;
     ColorSensor colorSensor;
     ColorSensor viperSlidesSensor;
-    /***************** 9. LED *****************/
+    //***************** 9. LED *****************
     RevBlinkinLedDriver blinkinLedDriver;
     private final static RevBlinkinLedDriver.BlinkinPattern DEFAULT_PATTERN = RevBlinkinLedDriver.BlinkinPattern.GRAY;
     private final static RevBlinkinLedDriver.BlinkinPattern YELLOW_PATTERN = RevBlinkinLedDriver.BlinkinPattern.YELLOW;
@@ -171,7 +151,7 @@ public class MecanumTeleOp extends LinearOpMode {
         blinkinLedDriver.setPattern(pattern);
         currentPattern = pattern.toString();
     }
-    /***************** 10. FTC Dashboard *****************/
+    //***************** 10. FTC Dashboard *****************
     private static void logGamepad(Telemetry telemetry, Gamepad gamepad, String prefix) {
         telemetry.addData(prefix + "Synthetic",
                 gamepad.getGamepadId() == Gamepad.ID_UNASSOCIATED);
@@ -187,7 +167,7 @@ public class MecanumTeleOp extends LinearOpMode {
             }
         }
     }
-    /***************** Preset Buttons *****************/
+    //***************** Preset Buttons *****************
     public static double INTAKE_PRESET_WRIST_POS = 0.5;
     public static int INTAKE_PRESET_ARM_POS = -1400;
     public static int OUTTAKE_PRESET_HIGH_BASKET_VIPER_POS = 4200;
@@ -201,24 +181,14 @@ public class MecanumTeleOp extends LinearOpMode {
     public static int LS_ABOVE_LOWER_RUNG = 34000;
     public static int VIPER_SLIDE_DOWN_TIMER = 1500;
     public static int VIPER_SLIDE_UP_TIMER = 500;
-
+    */
     private class DriveThread extends Thread
     {
         public DriveThread()
         {
             this.setName("DriveThread");
         }
-
-
-        /**
-         * Mecanum Drivetrain
-         * Calculates the left/right front/rear motor powers required to achieve the requested
-         * robot motions: ...
-         * @param x
-         * @param y
-         * @param rx
-         * @param powerScale
-         */
+        /*
         public void move(double x, double y, double rx, double powerScale) {
             double denominator,frontLeftPower,backLeftPower,frontRightPower,backRightPower;
             double frontLeftPower_mod,backLeftPower_mod,frontRightPower_mod,backRightPower_mod;
@@ -244,15 +214,8 @@ public class MecanumTeleOp extends LinearOpMode {
             frontRightMotor.setPower(frontRightPower_mod * powerScale);
             backRightMotor.setPower(backRightPower_mod * powerScale);
 
-            /*if (debugMode) {
-                telemetry.addData("frontLeftPower_mod: ", frontLeftPower_mod * powerScale);
-                telemetry.addData("backLeftPower_mod: ", backLeftPower_mod * powerScale);
-                telemetry.addData("frontRightPower_mod: ", frontRightPower_mod * powerScale);
-                telemetry.addData("backRightPower_mod: ", backRightPower_mod * powerScale);
-                telemetry.update();
-            }
-            */
         }
+         */
         // called when tread.start is called. thread stays in loop to do what it does until exit is
         // signaled by main code calling thread.interrupt.
         @Override
@@ -268,19 +231,19 @@ public class MecanumTeleOp extends LinearOpMode {
                     y = -gamepad1.left_stick_y; // Counteract imperfect strafing
                     rx = gamepad1.right_stick_x;
 
-                    move(x,y,rx,1);
+                    robot.move(x,y,rx,1);
 
                     if (gamepad1.dpad_up) {
-                        move(0, 1,0,DPAD_FORWARD_BACKWARD_POWER_RATIO);
+                        robot.move(0, 1,0,MecanumRobot.DPAD_FORWARD_BACKWARD_POWER_RATIO);
                     }
                     else if (gamepad1.dpad_down) {
-                        move(0, -1,0,DPAD_FORWARD_BACKWARD_POWER_RATIO);
+                        robot.move(0, -1,0,MecanumRobot.DPAD_FORWARD_BACKWARD_POWER_RATIO);
                     }
                     else if (gamepad1.dpad_right) {
-                        move(1, 0,0,DPAD_SIDEWAY_POWER_RATIO);
+                        robot.move(1, 0,0,MecanumRobot.DPAD_SIDEWAY_POWER_RATIO);
                     }
                     else if (gamepad1.dpad_left) {
-                        move(-1, 0,0,DPAD_SIDEWAY_POWER_RATIO);
+                        robot.move(-1, 0,0,MecanumRobot.DPAD_SIDEWAY_POWER_RATIO);
                     }
                     idle();
                 }
@@ -375,115 +338,32 @@ public class MecanumTeleOp extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         // CONFIGURATION--------------------------------------------------------------
-        Gamepad.RumbleEffect rumbleEffect = new Gamepad.RumbleEffect.Builder()
-                .addStep(1.0, 1.0, 500)  //  Rumble right motor 100% for 500 mSec
-                .build();
 
         FtcDashboard dashboard = FtcDashboard.getInstance();
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        /***************** 0. IMU *****************/
-        // Retrieve the IMU from the hardware map
-        imu = hardwareMap.get(IMU.class, "imu");
-        //if (robotCentricDrive) {
-            // Adjust the orientation parameters to match your robot
-            IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                    RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
-                    RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
-            // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
-            imu.initialize(parameters);
-        /*} else {
-            // Adjust the orientation parameters to match your robot
-            IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                    RevHubOrientationOnRobot.LogoFacingDirection.FORWARD,
-                    RevHubOrientationOnRobot.UsbFacingDirection.RIGHT));
-            // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
-            imu.initialize(parameters);
-        }*/
-        imu.resetYaw();
+        robot.initializeBeforeStart();
 
         waitForStart();
 
         telemetry.addData("Robot", "Starting and initializing");
         telemetry.update();
 
-        /***************** 1. Mecanum Drivetrain *****************/
-        // Reverse the right side motors. This may be wrong for your setup.
-        // If your robot moves backwards when commanded to go forwards,
-        // reverse the left side instead.
-        // See the note about this earlier on this page.
-        frontLeftMotor = hardwareMap.dcMotor.get("frontLeftMotor");
-        backLeftMotor = hardwareMap.dcMotor.get("backLeftMotor");
-        frontRightMotor = hardwareMap.dcMotor.get("frontRightMotor");
-        backRightMotor = hardwareMap.dcMotor.get("backRightMotor");
-        backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        frontLeftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        backRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        robot.initialize();
 
         Thread  driveThread;
         //if (robotCentricDrive) {
-            driveThread = new DriveThread();
+        driveThread = new DriveThread();
         //} //else {
         //    driveThread = new DriveThreadFieldCentric();
         //}
         driveThread.start();
 
-        /***************** 2. Viper Slides *****************/
-        slideMotorR = hardwareMap.dcMotor.get("SlideMotorR");
-        slideMotorL = hardwareMap.dcMotor.get("SlideMotorL");
-        slideMotorL.setDirection(DcMotorSimple.Direction.REVERSE);
-        slideMotorR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        slideMotorL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        /***************** 3. Arm *****************/
-        armMotor = hardwareMap.dcMotor.get("ArmMotor");
-        armMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        /***************** 4. Wrist *****************/
-        wristServo = hardwareMap.servo.get("WristServo");
-        //wristServo.setPosition(wristPosition);
-
-        ///*************** 5. Claw Intake
-        clawServoR = hardwareMap.crservo.get("ClawServoR");
-        clawServoL = hardwareMap.crservo.get("ClawServoL");
-        clawServoR.setPower(0);
-        clawServoL.setPower(0);
-
-        /***************** 6. MiSUMi Slides *****************/
-        extendServoR = hardwareMap.servo.get("ExtendServoR");
-        extendServoL = hardwareMap.servo.get("ExtendServoL");
-        //extendServoR.setPosition(slideExtendR);
-        //extendServoL.setPosition(-slideExtendR+1);
-
-        /***************** 7. Lead Screw *****************/
-        LSMotorR = hardwareMap.dcMotor.get("LSMotorR");
-
-        /***************** 8. Color Sensor *****************/
-        // hsvValues is an array that will hold the hue, saturation, and value information.
-        float hsvValues[] = {0F,0F,0F};
-
-        // values is a reference to the hsvValues array.
-        final float values[] = hsvValues;
-
-        // get a reference to our ColorSensor object.
-        colorSensor = hardwareMap.get(ColorSensor.class, "ColorSensor");
-        viperSlidesSensor = hardwareMap.get(ColorSensor.class, "ViperSlidesSensor");
-
-        /***************** 9. LED *****************/
-        displayKind = DisplayKind.MANUAL;
-        blinkinLedDriver = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
-        setBlinkinLEDDisplayPattern(DEFAULT_PATTERN);
-
-        /***************** Preset Buttons *****************/
-
-
         if (isStopRequested()) return;
+
+        Gamepad.RumbleEffect rumbleEffect = new Gamepad.RumbleEffect.Builder()
+                .addStep(1.0, 1.0, 500)  //  Rumble right motor 100% for 500 mSec
+                .build();
 
         telemetry.addData("Robot", "finishes initialization");
         telemetry.update();
@@ -493,11 +373,13 @@ public class MecanumTeleOp extends LinearOpMode {
             //logGamepad(telemetry, gamepad1, "gamepad1");
             //logGamepad(telemetry, gamepad2, "gamepad2");
 
-            if (robotCentricDrive)
-                telemetry.addData("Robot centric driving",1);
+            //if (robotCentricDrive)
+                //telemetry.addData("Robot centric driving",1);
             //else
             //    telemetry.addData("Field centric driving",0);
-            
+
+            /***************** Toggle Button Status *****************/
+
             // Click "back" button to toggle the debug view
 
             // check the status of the back button on gamepad2.
@@ -535,9 +417,9 @@ public class MecanumTeleOp extends LinearOpMode {
             if (back1CurrState && !back1PrevState) {
                 leadScrewDebug = !leadScrewDebug;
                 if (leadScrewDebug) {
-                    LSMotorR.setPower(0);
+                    robot.LSMotorR.setPower(0);
                     //LSMotorL.setPower(0);
-                    LSMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                    robot.LSMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                     //LSMotorL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                 }
             }
@@ -550,9 +432,9 @@ public class MecanumTeleOp extends LinearOpMode {
             if (back1CurrState && !back1PrevState) {
                 leadScrewDebug = !leadScrewDebug;
                 if (leadScrewDebug) {
-                    LSMotorR.setPower(0);
+                    robot.LSMotorR.setPower(0);
                     //LSMotorL.setPower(0);
-                    LSMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                    robot.LSMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                     //LSMotorL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                 }
             }
@@ -561,67 +443,20 @@ public class MecanumTeleOp extends LinearOpMode {
                 telemetry.addData("Lead Screw Debug Mode enabled", 1);
             }
             /***************** 8. Color Sensor *****************/
-
-            if (((DistanceSensor) colorSensor).getDistance(DistanceUnit.CM) <= SAMPLE_IN_DISTANCE) {
-                telemetry.addData("sample detected", 1);
-                // convert the RGB values to HSV values.
-                Color.RGBToHSV((int)colorSensor.red() * 8, (int) colorSensor.green() * 8, (int) colorSensor.blue() * 8, hsvValues);
-                // send the info back to driver station using telemetry function.
-                telemetry.addData("Clear", colorSensor.alpha());
-                telemetry.addData("Red  ", colorSensor.red());
-                telemetry.addData("Green", colorSensor.green());
-                telemetry.addData("Blue ", colorSensor.blue());
-                telemetry.addData("Hue", hsvValues[0]);
-                if ((TEAM_COLOR_RED && hsvValues[0] >= BLUE_HUE - 10 && hsvValues[0] <= BLUE_HUE + 10)
-                    || (!TEAM_COLOR_RED && hsvValues[0] >= RED_HUE - 10 && hsvValues[0] <= RED_HUE + 10)){
-                    clawServoR.setPower(CLOCKWISE_POWER);
-                    clawServoL.setPower(COUNTER_CLOCKWISE_POWER);
-                    runtime.reset();
-                    while (runtime.milliseconds() <= 500 && opModeIsActive()) idle();
-                    clawServoR.setPower(0);
-                    clawServoL.setPower(0);
-                }
-            }
-
-
-            if (colorSensor instanceof DistanceSensor) {
-                telemetry.addData("Distance (cm)", "%.3f", ((DistanceSensor) colorSensor).getDistance(DistanceUnit.CM));
-            }
+            robot.autoOuttakeBasedOnColor(telemetry);
 
             /***************** 1. Mecanum Drivetrain *****************/
 
             //moved to move function
 
             /***************** 2. Viper Slides *****************/
-            slidePositionR = slideMotorR.getCurrentPosition();
-            slidePositionL = slideMotorL.getCurrentPosition();
+            int slidePositionR = robot.slideMotorR.getCurrentPosition();
+            int slidePositionL = robot.slideMotorL.getCurrentPosition();
             // first priority
-            if (gamepad2.left_stick_y < 0 && slidePositionR <= VIPER_SLIDES_UPPER_LIMIT) { // slides go up
-                //slideMotor.setPower(-gamepad2.left_stick_y);
-                slidePositionR = slidePositionR + VIPER_SLIDES_STEP; // slides goes up
-                slideMotorR.setTargetPosition(slidePositionR);
-                slideMotorL.setTargetPosition(slidePositionR);
-                slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                slideMotorR.setPower(VIPER_SLIDES_POWER_MANUAL);
-                slideMotorL.setPower(VIPER_SLIDES_POWER_MANUAL);
-            } else if (gamepad2.left_stick_y > 0 && slidePositionR > VIPER_SLIDES_LOWER_LIMIT) {
-                if (((DistanceSensor) viperSlidesSensor).getDistance(DistanceUnit.CM) 
-                        < VIPER_SLIDES_CALIBRATE_DISTANCE) {
-                    slideMotorR.setPower(0);
-                    slideMotorL.setPower(0);
-                    slideMotorR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    slideMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                } else {
-                    //slideMotor.setPower(-gamepad2.left_stick_y);
-                    slidePositionR = slidePositionR - VIPER_SLIDES_STEP;
-                    slideMotorR.setTargetPosition(slidePositionR);
-                    slideMotorL.setTargetPosition(slidePositionR);
-                    slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                    slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                    slideMotorR.setPower(VIPER_SLIDES_POWER_MANUAL);
-                    slideMotorL.setPower(VIPER_SLIDES_POWER_MANUAL);
-                }
+            if (gamepad2.left_stick_y < 0 && slidePositionR <= MecanumRobot.VIPER_SLIDES_UPPER_LIMIT) { // slides go up
+                robot.viperSlidesUp(telemetry);
+            } else if (gamepad2.left_stick_y > 0 && slidePositionR > MecanumRobot.VIPER_SLIDES_LOWER_LIMIT) {
+                robot.viperSlidesDown(telemetry);
             }
 
             if (debugMode) {
@@ -630,67 +465,27 @@ public class MecanumTeleOp extends LinearOpMode {
             }
             /***************** 3. Arm *****************/
             //armMotor.setPower(-gamepad2.right_stick_y/4);
-            armPosition=armMotor.getCurrentPosition();
+            int armPosition=robot.armMotor.getCurrentPosition();
             if ((gamepad2.right_stick_y < 0)  &&
-            ((slidePositionR<OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_1 && armPosition <= ARM_INITIAL_POSITION)
-            ||(slidePositionR>=OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_1 && armPosition <= ARM_UPPER_LIMIT))) { // joystick above the origin; arm raises up
-                // retracts misumi slides when the arm rotates up and leaves the floor (at -1100 )
-                if (armPosition<=ARM_MISUMI_RETRACT_THRESHOLD_L+200 && armPosition>=ARM_MISUMI_RETRACT_THRESHOLD_L){
-                    extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
-                    extendServoL.setPosition(-MISUMI_RETRACT_LIMIT_R+1);
-                    clawServoR.setPower(0);
-                    clawServoL.setPower(0);
-                    clawState=0;
-                }
-                else if (armPosition<=ARM_WRIST_RETRACT_THRESHOLD_L+200 && armPosition>=ARM_WRIST_RETRACT_THRESHOLD_L){
-                    wristServo.setPosition(WRIST_DOWN);
-
-                    clawServoR.setPower(0);
-                    clawServoL.setPower(0);
-                    clawState=0;
-                }
-                else if (armPosition<=ARM_INITIAL_POSITION+200 && armPosition>=ARM_INITIAL_POSITION) {
-                    extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
-                    extendServoL.setPosition(-MISUMI_RETRACT_LIMIT_R+1);
-                    wristServo.setPosition(WRIST_DOWN);
-                }
-                armPosition = armPosition + ARM_STEP; // arm goes up by one step
-                armMotor.setTargetPosition(armPosition);
-                armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                armMotor.setPower(ARM_POWER_MANUAL);
-
-            } else if (gamepad2.right_stick_y > 0 && armPosition >= ARM_LOWER_LIMIT) { // joystick below the origin; arm puts down
-                if (armPosition<=ARM_WRIST_RETRACT_THRESHOLD_L+200 && armPosition>=ARM_WRIST_RETRACT_THRESHOLD_L){
-                    wristServo.setPosition(INTAKE_PRESET_WRIST_POS);
-                }
-                armPosition = armPosition - ARM_STEP; // arm goes down by one step
-                armMotor.setTargetPosition(armPosition);
-                armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                armMotor.setPower(ARM_POWER_MANUAL);
+            ((slidePositionR<MecanumRobot.OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_1 && armPosition <= MecanumRobot.ARM_INITIAL_POSITION)
+            ||(slidePositionR>=MecanumRobot.OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_1 && armPosition <= MecanumRobot.ARM_UPPER_LIMIT))) { // joystick above the origin; arm raises up
+                robot.armUp();
+            } else if (gamepad2.right_stick_y > 0 && armPosition >= MecanumRobot.ARM_LOWER_LIMIT) { // joystick below the origin; arm puts down
+                robot.armDown();
             } //else {
                 //armMotor.setPower(0); // RUN_WITHOUT_ENCODER mode
             //}
             if (debugMode) {
                 telemetry.addData("armPosition:", armPosition);
             }
-            if (armPosition > ARM_UPPER_LIMIT) {
-                armMotor.setTargetPosition(ARM_UPPER_LIMIT);
-                armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            }
 
             /***************** 4. Wrist *****************/
-            wristPosition = wristServo.getPosition();
+            double wristPosition = robot.wristServo.getPosition();
             if (gamepad2.dpad_down) {
-                if (wristPosition <= WRIST_DOWN) { // wrist down
-                    wristPosition += WRIST_STEP;
-                    wristServo.setPosition(wristPosition);
-                }
+                robot.wristDown();
             }
             else if (gamepad2.dpad_up) {
-                if (wristPosition >= WRIST_UP) { // wrist up
-                    wristPosition -= WRIST_STEP;
-                    wristServo.setPosition(wristPosition);
-                }
+                robot.wristUp();
             }
             if (debugMode) {
                 telemetry.addData("wristPosition:", wristPosition);
@@ -704,39 +499,25 @@ public class MecanumTeleOp extends LinearOpMode {
             outtakeCurrState = gamepad2.left_bumper;
             intakeCurrState = gamepad2.right_bumper;
             if (intakeCurrState && !intakePrevState) {
-                if (clawState == 1) {
-                    clawState = 0;
+                if (robot.clawState == 1) {
+                    robot.clawState = 0;
                 }
                 else {
-                    clawState = 1;
+                    robot.clawState = 1;
                 }
             }
             intakePrevState = intakeCurrState;
             if (outtakeCurrState && !outtakePrevState) {
-                if (clawState == 2) {
-                    clawState = 0;
+                if (robot.clawState == 2) {
+                    robot.clawState = 0;
                 }
                 else {
-                    clawState = 2;
+                    robot.clawState = 2;
                 }
             }
             outtakePrevState = outtakeCurrState;
-            if (clawState==0) {
-                clawServoR.setPower(0);
-                clawServoL.setPower(0);
-            } else if (clawState==1) {
-                clawServoR.setPower(COUNTER_CLOCKWISE_POWER);
-                clawServoL.setPower(CLOCKWISE_POWER);
-            } else if (clawState==2) {
-                clawServoR.setPower(CLOCKWISE_POWER);
-                clawServoL.setPower(COUNTER_CLOCKWISE_POWER);
-            }
 
-            telemetry.addData("" +
-                    "0: Not rotating\n" +
-                    "1: Intake\n" +
-                    "2: Outtake\n" +
-                    "Claw Status = ",clawState);
+            robot.setClawState(telemetry);
 
             /*
             if (clawState == 1) { //intaking
@@ -831,17 +612,11 @@ public class MecanumTeleOp extends LinearOpMode {
              */
 
             //CY CHANGE--------------------------------Changed to variable speed + position, controls changed from bumper to trigger---------------------------------
-            slideExtendR = extendServoR.getPosition();
-            if ((gamepad2.right_trigger > TRIGGER_THRESHOLD) && (slideExtendR < MISUMI_EXTEND_LIMIT_R) && (armPosition <= ARM_UPPER_LIMIT)) {  // (armPosition < 0)
-                slideExtendR = slideExtendR + MISUMI_STEP_RATIO_1 * (gamepad2.right_trigger*MISUMI_STEP_RATIO_2);
-                if (slideExtendR>MISUMI_EXTEND_LIMIT_R) slideExtendR=MISUMI_EXTEND_LIMIT_R;
-                extendServoR.setPosition(slideExtendR);
-                extendServoL.setPosition(-slideExtendR + 1);
-            } else if (gamepad2.left_trigger > TRIGGER_THRESHOLD && (slideExtendR > MISUMI_RETRACT_LIMIT_R)) {
-                slideExtendR = slideExtendR - MISUMI_STEP_RATIO_1 * (gamepad2.left_trigger*MISUMI_STEP_RATIO_2);
-                if (slideExtendR<MISUMI_RETRACT_LIMIT_R) slideExtendR=0;
-                extendServoR.setPosition(slideExtendR);
-                extendServoL.setPosition(-slideExtendR + 1);
+            double slideExtendR = robot.extendServoR.getPosition();
+            if ((gamepad2.right_trigger > TRIGGER_THRESHOLD) && (slideExtendR < MecanumRobot.MISUMI_EXTEND_LIMIT_R) && (armPosition <= MecanumRobot.ARM_UPPER_LIMIT)) {  // (armPosition < 0)
+                robot.extendHorizontalSlides(gamepad2.right_trigger);
+            } else if (gamepad2.left_trigger > TRIGGER_THRESHOLD && (slideExtendR > MecanumRobot.MISUMI_RETRACT_LIMIT_R)) {
+                robot.retractHorizontalSlides(gamepad2.left_trigger);
             }
             if (debugMode) {
                 telemetry.addData("slideExtendR:", slideExtendR);
@@ -849,7 +624,7 @@ public class MecanumTeleOp extends LinearOpMode {
             }
 
 
-            /***************** 7. Lead Screw *****************/
+            /***************** 7. Lead Screw ****************
 
             LSPositionR = LSMotorR.getCurrentPosition();
             //LSPositionL = LSMotorL.getCurrentPosition();
@@ -921,176 +696,36 @@ public class MecanumTeleOp extends LinearOpMode {
                 telemetry.addData("LSPositionL:", LSPositionL);
                 telemetry.addData("Lead Screw State: ", LSState);
             }
+             */
+
             /***************** Preset Buttons *****************/
 
             if (gamepad2.b){ // intake position
-                wristServo.setPosition(INTAKE_PRESET_WRIST_POS);
-
-                armMotor.setTargetPosition(ARM_INITIAL_POSITION);
-                armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                armMotor.setPower(ARM_POWER_PRESET);
-
-                extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
-                extendServoL.setPosition(-MISUMI_RETRACT_LIMIT_R+1);
-
-                slideMotorR.setTargetPosition(VIPER_SLIDES_INITIAL_POSITION);
-                slideMotorL.setTargetPosition(VIPER_SLIDES_INITIAL_POSITION);
-                slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
-                slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
-
-                runtime.reset();
-                while (opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy()
-                        && (runtime.milliseconds() < VIPER_SLIDE_DOWN_TIMER)
-                        && ((DistanceSensor) viperSlidesSensor).getDistance(DistanceUnit.CM) 
-                            >= VIPER_SLIDES_CALIBRATE_DISTANCE) idle();
-                slideMotorR.setPower(0);
-                slideMotorL.setPower(0);
-                slideMotorR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                slideMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                slideMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                slideMotorL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-                armMotor.setTargetPosition(INTAKE_PRESET_ARM_POS);
-                armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                armMotor.setPower(ARM_POWER_PRESET);
-
-                clawServoR.setPower(COUNTER_CLOCKWISE_POWER);
-                clawServoL.setPower(CLOCKWISE_POWER);
-                clawState = 1; // intake
-
-
+                robot.clawintakefromfloor();
             }
 
             if (gamepad2.y || gamepad2.a) { // outtake at high or low basket
-                armMotor.setTargetPosition(ARM_INITIAL_POSITION);
-                armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                armMotor.setPower(ARM_POWER_PRESET);
-
-                if (gamepad2.y) {
-                    slideMotorR.setTargetPosition(OUTTAKE_PRESET_HIGH_BASKET_VIPER_POS); //10300
-                    slideMotorL.setTargetPosition(OUTTAKE_PRESET_HIGH_BASKET_VIPER_POS); //10300
-                    slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                    slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                    slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET);
-                    slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET);
-                } else if (gamepad2.a) {
-                    slideMotorR.setTargetPosition(OUTTAKE_PRESET_LOW_BASKET_VIPER_POS); //2850
-                    slideMotorL.setTargetPosition(OUTTAKE_PRESET_LOW_BASKET_VIPER_POS); //2850
-                    slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                    slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                    slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET);
-                    slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET);
-                }
-                runtime.reset();
-                while (opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy() && 
-                        (runtime.milliseconds() < VIPER_SLIDE_UP_TIMER)) {
-                    //telemetry.addData("Outtake Preset", "Viper: %4.1f S Elapsed", runtime.milliseconds());
-                    //telemetry.update();
-                    idle();
-                }
-                extendServoR.setPosition(OUTTAKE_PRESET_MISUMI_R);
-                extendServoL.setPosition(1-OUTTAKE_PRESET_MISUMI_R);
-
-                wristServo.setPosition(OUTTAKE_PRESET_WRIST_POS);
-
-                armMotor.setTargetPosition(OUTTAKE_PRESET_ARM_POS);
-                armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                armMotor.setPower(ARM_POWER_PRESET);
+                if (gamepad2.y) robot.outtakeBasket(MecanumRobot.HIGH_BASKET);
+                else if (gamepad2.a) robot.outtakeBasket(MecanumRobot.LOW_BASKET);
             }
-
+            /*
             if (gamepad2.dpad_right) { //specimen outtake
 
-                armMotor.setTargetPosition(ARM_INITIAL_POSITION);
-                armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                armMotor.setPower(ARM_POWER_PRESET);
-
-                slideMotorR.setTargetPosition(OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_1); //2400
-                slideMotorL.setTargetPosition(OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_1); //2400
-                slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET);
-                slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET);
-
-                runtime.reset();
-                while (opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy() 
-                        && runtime.milliseconds() < VIPER_SLIDE_UP_TIMER) {
-                    //telemetry.addData("Outtake Preset", "Viper: %4.1f S Elapsed", runtime.milliseconds());
-                    //telemetry.update();
-                }
-
-                extendServoR.setPosition(OUTTAKE_PRESET_MISUMI_R);
-                extendServoL.setPosition(1-OUTTAKE_PRESET_MISUMI_R);
-
-                wristServo.setPosition(OUTTAKE_PRESET_CHAMBER_WRIST_POS); //0.4
-
-                armMotor.setTargetPosition(OUTTAKE_PRESET_ARM_POS);
-                armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                armMotor.setPower(ARM_POWER_PRESET);
+                robot.highchamberspecimenouttake();
             }
             if (gamepad2.dpad_left) {
-                slideMotorR.setTargetPosition(OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_2); //2300
-                slideMotorL.setTargetPosition(OUTTAKE_PRESET_HIGH_CHAMBER_VIPER_2); //2300
-                slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET);
-                slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET);
-                runtime.reset();
-                while (opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy()
-                        && runtime.milliseconds() < VIPER_SLIDE_UP_TIMER) {
-                    //telemetry.addData("Outtake Preset", "Viper: %4.1f S Elapsed", runtime.milliseconds());
-                    //telemetry.update();
-                }
+                robot.highchamberspecimenouttake2();
             }
+            */
+
             // Drivetrain Moving Position
             if (gamepad2.x) {
-                //brake
-                slideMotorR.setTargetPosition(VIPER_SLIDES_INITIAL_POSITION);
-                slideMotorL.setTargetPosition(VIPER_SLIDES_INITIAL_POSITION);
-                slideMotorR.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
-                slideMotorL.setPower(VIPER_SLIDES_POWER_PRESET_DOWN);
-                slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-                clawState = 0;
-                clawServoR.setPower(0);
-                clawServoL.setPower(0);
-
-                extendServoR.setPosition(MISUMI_RETRACT_LIMIT_R);
-                extendServoL.setPosition(-MISUMI_RETRACT_LIMIT_R+1);
-
-                wristServo.setPosition(WRIST_DOWN);
-
-                armMotor.setTargetPosition(ARM_INITIAL_POSITION);
-                armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                armMotor.setPower(ARM_POWER_PRESET);
-
-                ///// After the arm reaches position, switch back to RUN_WITHOUT_ENCODER mode
-                while (armMotor.isBusy()) idle();
-                armMotor.setPower(0);
-                armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-
-                ///// After the viper slides reaches position, switch back to RUN_WITHOUT_ENCODER mode
-
-                runtime.reset();
-                while (opModeIsActive() && slideMotorR.isBusy() && slideMotorL.isBusy()
-                        && (runtime.milliseconds() < VIPER_SLIDE_DOWN_TIMER)
-                        && ((DistanceSensor) viperSlidesSensor).getDistance(DistanceUnit.CM) 
-                            >= VIPER_SLIDES_CALIBRATE_DISTANCE) idle();
-                slideMotorR.setPower(0);
-                slideMotorL.setPower(0);
-                slideMotorR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                slideMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                slideMotorR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                slideMotorL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                telemetry.addData("viper slides", "reset");
+                robot.reset();
             }
 
-            if (debugMode && viperSlidesSensor instanceof DistanceSensor) {
+            if (debugMode && robot.viperSlidesSensor instanceof DistanceSensor) {
                 telemetry.addData("Distance (cm)", "%.3f", 
-                        ((DistanceSensor) viperSlidesSensor).getDistance(DistanceUnit.CM));
+                        ((DistanceSensor) robot.viperSlidesSensor).getDistance(DistanceUnit.CM));
             }
 
 

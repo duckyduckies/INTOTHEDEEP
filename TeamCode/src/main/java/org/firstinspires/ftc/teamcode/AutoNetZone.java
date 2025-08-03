@@ -105,7 +105,7 @@ public class AutoNetZone extends LinearOpMode {
 
         // ****** Action [4] ******
 
-        robot.highBasket();
+        robot.outtakeBasket(MecanumRobot.HIGH_BASKET);
         runtime.reset();
         while (opModeIsActive() && (runtime.milliseconds() < ACTION_3_TIMER)) {
             //telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.milliseconds());
