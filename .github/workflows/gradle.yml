@@ -17,6 +17,8 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    outputs:
+      metadata: ${{ steps.record_metadata.outputs.metadata }}
     permissions:
       contents: read
 
@@ -40,20 +42,23 @@ jobs:
         echo "START_EPOCH=$(date -u +%s)" >> $GITHUB_ENV
           
     - name: Build with Gradle Wrapper
+      id: run_build
       run: ./gradlew build
 
     - name: Save build outcome to env
+      id: build_status
       if: always()
       run: echo "BUILD_STATUS=${{ steps.run_build.outcome }}" >> $GITHUB_ENV
 
     - name: Save end time
-      id: set-metadata
+      id: end_time
       if: always()
       run: |
         echo "END_ISO=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_ENV
         echo "END_EPOCH=$(date -u +%s)" >> $GITHUB_ENV
 
     - name: Run embedded Python script
+      id: record-metadata
       run: |
         def safe_cmd(cmd):
                 import subprocess
