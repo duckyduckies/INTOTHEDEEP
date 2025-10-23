@@ -55,16 +55,30 @@ jobs:
 
     - name: Run embedded Python script
       run: |
+        def safe_cmd(cmd):
+                import subprocess
+                try:
+                    return subprocess.check_output(cmd, stderr=subprocess.DEVNULL).decode().strip()
+                except Exception:
+                    return ""
+                  
         import json,os,subprocess
         start = int(os.environ.get('START_EPOCH','0'))
         end = int(os.environ.get('END_EPOCH','0'))
+        commit = safe_cmd(['git', 'rev-parse', '--short', 'HEAD'])
+        committer = safe_cmd(['git', 'log', '-1', '--pretty=%an <%ae>'])
+        message = safe_cmd(['git', 'log', '-1', '--pretty=%B'])
         metadata = {
             'date': os.environ.get('END_ISO',''),
             'build': 'build',
             'duration': max(0, end - start),
             'status': os.environ.get('BUILD_STATUS','unknown'),
+            'commit': commit,
+            'committer': committer,
+            'message': message
         }
-        print(json.dumps(metadata))
+        output = json.dumps(metadata)
+        print(f"metadata={output}", file=open(os.environ['GITHUB_OUTPUT'], 'a'))
       shell: python
       
     - name: Upload build artifacts
@@ -82,7 +96,27 @@ jobs:
     #
     # - name: Build with Gradle 8.9
     #   run: gradle build
+  record:
+    name: Record and upload metadata
+    needs: build
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Write metadata file
+        run: |
+          echo '${{ needs.build.outputs.metadata }}' > build-metadata-${{ github.run_id }}.json
 
+      - name: Upload metadata artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-metadata-${{ github.run_id }}
+          path: build-metadata-${{ github.run_id }}.json
+
+      - name: Show metadata (log)
+        run: |
+          echo "Saved metadata for run ${{ github.run_id }}"
+          cat build-metadata-${{ github.run_id }}.json
+          
   dependency-submission:
 
     runs-on: ubuntu-latest
