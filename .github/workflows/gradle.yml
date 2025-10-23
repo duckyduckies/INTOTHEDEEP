@@ -52,7 +52,44 @@ jobs:
       run: |
         echo "END_ISO=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_ENV
         echo "END_EPOCH=$(date -u +%s)" >> $GITHUB_ENV
-          
+
+        # Build a one-line JSON metadata object using python3 (available on ubuntu runners)
+          metadata_json=$(python3 - <<'PY'
+import json,os,subprocess
+start = int(os.environ.get('START_EPOCH','0'))
+end = int(os.environ.get('END_EPOCH','0'))
+metadata = {
+    'date': os.environ.get('END_ISO',''),
+    'build': 'build',
+    'duration': max(0, end - start),
+    'status': os.environ.get('BUILD_STATUS','unknown'),
+}
+print(json.dumps(metadata))
+PY
+        # Export metadata as a job output
+        echo "metadata=$metadata_json" >> $GITHUB_OUTPUT
+        
+    record:
+      name: Record and upload metadata
+      needs: build
+      if: always()
+      runs-on: ubuntu-latest
+      steps:
+        - name: Write metadata file
+          run: |
+            echo '${{ needs.build.outputs.metadata }}' > build-metadata-${{ github.run_id }}.json
+  
+        - name: Upload metadata artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: build-metadata-${{ github.run_id }}
+            path: build-metadata-${{ github.run_id }}.json
+  
+        - name: Show metadata (log)
+          run: |
+            echo "Saved metadata for run ${{ github.run_id }}"
+            cat build-metadata-${{ github.run_id }}.json
+      
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
