@@ -33,9 +33,26 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
 
+    - name: Record start time
+        id: start
+        run: |
+          echo "START_ISO=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_ENV
+          echo "START_EPOCH=$(date -u +%s)" >> $GITHUB_ENV
+          
     - name: Build with Gradle Wrapper
       run: ./gradlew build
-      
+
+    - name: Save build outcome to env
+      if: always()
+      run: echo "BUILD_STATUS=${{ steps.run_build.outcome }}" >> $GITHUB_ENV
+
+    - name: Save end time and set metadata
+      id: set-metadata
+      if: always()
+      run: |
+        echo "END_ISO=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_ENV
+        echo "END_EPOCH=$(date -u +%s)" >> $GITHUB_ENV
+          
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
