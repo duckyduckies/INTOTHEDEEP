@@ -58,7 +58,7 @@ jobs:
         echo "END_EPOCH=$(date -u +%s)" >> $GITHUB_ENV
 
     - name: Run embedded Python script
-      id: record-metadata
+      id: record_metadata
       run: |
         def safe_cmd(cmd):
                 import subprocess
